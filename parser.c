@@ -3,9 +3,10 @@
 #include "parser.h"
 #include "lex.h"
 
-symbol* parser(lexeme *list, bool flag)
+symbol* parser(lexeme *list, int flag)
 {
+    symbol* table = NULL;
 	//TODO: parser logic
-    
+
     return table;
 }
