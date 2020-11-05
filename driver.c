@@ -45,9 +45,13 @@ int main(int argc, char **argv)
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
+    printf("Calling lexer().\n");
     lexeme *list = lexer(fp, lflag, &j);
+    printf("Calling parser().\n");
     symbol *table = parser(list, aflag, j);
+    printf("Calling generate_code().\n");
     instruction *code = generate_code(table, list);
+    printf("Calling virtualMachine().\n");
     virtualMachine(code, vflag);
 
     return 0;

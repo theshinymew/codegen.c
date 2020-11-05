@@ -333,7 +333,7 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 
 	if (flag == 1)
 	{
-		printf("\n\nLexeme List:\n");
+		printf("\nLexeme List:\n");
 		for(i = 0; i < j; i++)
 		{
 			l = lexeme_table[i];
@@ -352,6 +352,7 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 					printf("| ");
 			}
 		}
+		printf("\n");
 	}
 	*listLength = j;
 	return lexeme_table;
