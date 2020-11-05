@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "lex.h"
 #include "parser.h"
 #include "codegen.h"
@@ -7,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    int j = 0;
+    int i, j = 0;
 
     if(argc < 2)
     {
@@ -23,16 +24,29 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    //TODO: set flags according to inputs
+    for(i = 2; argv[i] != NULL; i++)
+    {
+        if(strcmp(argv[i], "-l") == 0)
+        {
+            lflag = 1;
+        }
+        else if(strcmp(argv[i], "-v") == 0)
+        {
+            vflag = 1;
+        }
+        else if(strcmp(argv[i], "-a") == 0)
+        {
+            aflag = 1;
+        }
+    }
 
-    //TODO: modify lex.c, vm.c: change main to method signature
+    //TODO: modify vm.c: change main to method signature
     //TODO: move typedef declaratiosn to .h file?
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
     lexeme *list = lexer(fp, lflag, &j);
     symbol *table = parser(list, aflag, j);
-    // does codegen get aflag too?
     instruction *code = generate_code(table, list);
     virtualMachine(code, vflag);
 
