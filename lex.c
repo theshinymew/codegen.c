@@ -11,34 +11,10 @@
 #define MAX_NUMBER_LENGTH 5
 #define MAX_TABLE_SIZE 500
 
-// Token declaration
-typedef enum
-{
-	nulsym = 1, identsym, numbersym, plussym, minussym,	multsym, slashsym,
-	oddsym, eqsym, neqsym, lessym, leqsym, gtrsym, geqsym, lparentsym,
-	rparentsym, commasym, semicolonsym,	periodsym, becomessym, beginsym, endsym,
-	ifsym, thensym,	whilesym, dosym, callsym, constsym, varsym, procsym,
-	writesym, readsym, elsesym, commentsym, endcommentsym
-} token_type;
 
 // Reserved words declaration
 char *reserved[] = { "odd", "begin", "end", "if", "then", "while", "do", "call",
 					 "const", "var", "procedure", "write", "read", "else" };
-
-// Error type declaration
-typedef enum
-{
-	invalidid = 1, numtoolong, idtoolong, invalidsym
-} error_type;
-
-// Lexeme struct
-typedef struct lexeme
-{
-	char* name;
-	int value;
-	token_type token;
-	error_type error;
-} lexeme;
 
 // Should these take lexeme structs instead?
 token_type getAlphaTokenType(char *s)
@@ -55,7 +31,7 @@ token_type getAlphaTokenType(char *s)
 	return identsym;
 }
 
-lexeme* lexer(FILE *fp, bool flag)
+lexeme* lexer(FILE *fp, int flag, int *listLength)
 {
 	// Initialize variables
 	lexeme lexeme_table[MAX_TABLE_SIZE];
@@ -64,7 +40,6 @@ lexeme* lexer(FILE *fp, bool flag)
 	char buffer[32];
 	int i, j = 0;
 	error_type error;
-	FILE *fp;
 
 	// Special symbols hash table declaration
 	token_type ssym[256];
@@ -89,26 +64,16 @@ lexeme* lexer(FILE *fp, bool flag)
 	ssym['/' * 2 + '*'] = commentsym;
 	ssym['*' * 2 + '/'] = endcommentsym;
 
-	// Read file into lexeme_table(?)
-	if((fp = fopen(argv[1], "r")) == NULL)
-	{
-		printf("Unable to open file :(\n");
-		return 1;
-	}
 
 	ch = fgetc(fp);
-  	if(ch != EOF)
-  		printf("%c", ch);
 	while(ch != EOF)
 	{
 		// Ignore whitespace
 		if(isspace(ch) || iscntrl(ch))
 		{
 			ch = fgetc(fp);
-			if(ch != EOF)
-  				if(ch != EOF)
-  					printf("%c", ch);
 		}
+
 		// Reserved word or identifier
 		else if(isalpha(ch))
 		{
@@ -120,11 +85,7 @@ lexeme* lexer(FILE *fp, bool flag)
 			{
 				buffer[i] =  ch;
 				i++;
-				if(ch != EOF)
-  					printf("%c", ch);
 			}
-			if(ch != EOF)
-  				printf("%c", ch);
 
 			// Add lexeme to table
 			buffer[i] = '\0';
@@ -148,14 +109,10 @@ lexeme* lexer(FILE *fp, bool flag)
 			{
 				buffer[i] = ch;
 				i++;
-				if(ch != EOF)
-  					printf("%c", ch);
 
 				if(isalpha(ch))
 					error = invalidid;
 			}
-			if(ch != EOF)
-				printf("%c", ch);
 
 			// Add lexeme to table
 			if(error == 0)
@@ -211,8 +168,6 @@ lexeme* lexer(FILE *fp, bool flag)
 				{
 					buffer[i] = ch;
 					i++;
-					if(ch != EOF)
-						printf("%c", ch);
 
 					buffer[i] = '\0';
 
@@ -244,8 +199,6 @@ lexeme* lexer(FILE *fp, bool flag)
 				{
 					buffer[i] = ch;
 					i++;
-					if(ch != EOF)
-						printf("%c", ch);
 
 					buffer[i] = '\0';
 
@@ -277,8 +230,6 @@ lexeme* lexer(FILE *fp, bool flag)
 				{
 					buffer[i] = ch;
 					i++;
-					if(ch != EOF)
-						printf("%c", ch);
 
 					buffer[i] = '\0';
 
@@ -310,8 +261,6 @@ lexeme* lexer(FILE *fp, bool flag)
 				{
 					buffer[i] = ch;
 					i++;
-					if(ch != EOF)
-						printf("%c", ch);
 
 					buffer[i] = '\0';
 
@@ -327,7 +276,6 @@ lexeme* lexer(FILE *fp, bool flag)
 					{
 						if(ch == '*')
 						{
-							printf("%c", ch);
 							ch = fgetc(fp);
 							if(ch == '/') // Exit comment
 							{
@@ -342,17 +290,14 @@ lexeme* lexer(FILE *fp, bool flag)
 								lexeme_table[j].error = error;
 
 								j++;
-								printf("%c", ch);
 								break;
 							}
 							else
 							{
-								printf("%c", ch);
 								continue;
 							}
 
 						}
-						printf("%c", ch);
 					}
 				}
 				else // "/" token
@@ -383,67 +328,32 @@ lexeme* lexer(FILE *fp, bool flag)
 				j++;
 			}
 			ch = fgetc(fp);
-			if(ch != EOF)
-				printf("%c", ch);
 		}
 	}
 
-	printf("\n\nLexeme Table:\n%-32s token type\n", "lexeme");
-	for(i = 0; i < j; i++)
+	if (flag == 1)
 	{
-		l = lexeme_table[i];
-
-		// This is so ugly oh my god
-		if(l.error > 0)
+		printf("\nLexeme List:\n");
+		for(i = 0; i < j; i++)
 		{
-			if(l.value > 0)
-				printf("%-32d ", l.value);
+			l = lexeme_table[i];
+			if(l.error == 0)
+			{
+				if(l.token == identsym)
+					printf("%d %s ", l.token, l.name);
 
-			else
-				printf("%-32s ", l.name);
+				else if(l.token == numbersym)
+					printf("%d %d ", l.token, l.value);
 
-			if(l.error == invalidid)
-				printf("ERROR: Invalid identifier.\n");
+				else
+					printf("%d ", l.token);
 
-			else if(l.error == numtoolong)
-				printf("ERROR: Number too long.\n");
-
-			else if(l.error == idtoolong)
-				printf("ERROR: Identifier too long.\n");
-
-			else
-				printf("ERROR: Invalid symbol.\n");
+				if((i + 1) < j)
+					printf("| ");
+			}
 		}
-		else
-		{
-			if(l.token == 3)
-				printf("%-32d %d\n", l.value, l.token);
-
-			else
-				printf("%-32s %d\n", l.name, l.token);
-		}
+		printf("\n");
 	}
-
-	printf("\n\nLexeme List:\n");
-	for(i = 0; i < j; i++)
-	{
-		l = lexeme_table[i];
-		if(l.error == 0)
-		{
-			if(l.token == identsym)
-				printf("%d %s ", l.token, l.name);
-
-			else if(l.token == numbersym)
-				printf("%d %d ", l.token, l.value);
-
-			else
-				printf("%d ", l.token);
-
-			if((i + 1) < j)
-				printf("| ");
-		}
-	}
-
-	printf("\n");
+	*listLength = j;
 	return lexeme_table;
 }
