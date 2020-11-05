@@ -30,6 +30,6 @@ typedef struct lexeme
 	error_type error;
 } lexeme;
 
-lexeme* lexer(FILE *fp, int flag);
+lexeme* lexer(FILE *fp, int flag, int *listLength);
 
 #endif

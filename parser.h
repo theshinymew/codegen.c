@@ -11,9 +11,8 @@ typedef struct symbol
 	int level;
 	int addr;
 	int mark;
-
 } symbol;
 
-symbol* parser(lexeme *list, int flag);
+symbol* parser(lexeme *list, int flag, int j);
 
 #endif

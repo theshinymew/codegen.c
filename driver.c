@@ -7,6 +7,8 @@
 
 int main(int argc, char **argv)
 {
+    int j = 0;
+
     if(argc < 2)
     {
         printf("error: file name not given\n");
@@ -28,8 +30,8 @@ int main(int argc, char **argv)
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
-    lexeme *list = lexer(fp, lflag);
-    symbol *table = parser(list, aflag);
+    lexeme *list = lexer(fp, lflag, &j);
+    symbol *table = parser(list, aflag, j);
     // does codegen get aflag too?
     instruction *code = generate_code(table, list);
     virtualMachine(code, vflag);
