@@ -24,11 +24,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-<<<<<<< HEAD
-    //TODO: set flags according to inputs
-
-    //TODO: modify lex.c, vm.c: change main to method signature
-=======
     for(i = 2; argv[i] != NULL; i++)
     {
         if(strcmp(argv[i], "-l") == 0)
@@ -46,17 +41,10 @@ int main(int argc, char **argv)
     }
 
     //TODO: modify vm.c: change main to method signature
->>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
     //TODO: move typedef declaratiosn to .h file?
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
-<<<<<<< HEAD
-    lexeme *list = lexer(fp, lflag);
-    symbol *table = parser(list, aflag);
-    // does codegen get aflag too?
-    instruction *code = generate_code(table, list);
-=======
     printf("Calling lexer().\n");
     lexeme *list = lexer(fp, lflag, &j);
     printf("Calling parser().\n");
@@ -64,7 +52,6 @@ int main(int argc, char **argv)
     printf("Calling generate_code().\n");
     instruction *code = generate_code(table, list);
     printf("Calling virtualMachine().\n");
->>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
     virtualMachine(code, vflag);
 
     return 0;

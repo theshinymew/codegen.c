@@ -4,13 +4,6 @@
 #include "parser.h"
 #include "lex.h"
 
-<<<<<<< HEAD
-symbol* parser(lexeme *list, int flag)
-{
-    symbol* table = NULL;
-	//TODO: parser logic
-
-=======
 symbol* parser(lexeme *list, int flag, int j)
 {
     int i;
@@ -47,6 +40,5 @@ symbol* parser(lexeme *list, int flag, int j)
 
 
     }
->>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
     return table;
 }
