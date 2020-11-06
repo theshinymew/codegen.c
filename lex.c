@@ -31,7 +31,11 @@ token_type getAlphaTokenType(char *s)
 	return identsym;
 }
 
+<<<<<<< HEAD
 lexeme* lexer(FILE *fp, int flag)
+=======
+lexeme* lexer(FILE *fp, int flag, int *listLength)
+>>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
 {
 	// Initialize variables
 	lexeme lexeme_table[MAX_TABLE_SIZE];
@@ -64,6 +68,10 @@ lexeme* lexer(FILE *fp, int flag)
 	ssym['/' * 2 + '*'] = commentsym;
 	ssym['*' * 2 + '/'] = endcommentsym;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
 	ch = fgetc(fp);
 	while(ch != EOF)
 	{
@@ -330,5 +338,32 @@ lexeme* lexer(FILE *fp, int flag)
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if (flag == 1)
+	{
+		printf("\nLexeme List:\n");
+		for(i = 0; i < j; i++)
+		{
+			l = lexeme_table[i];
+			if(l.error == 0)
+			{
+				if(l.token == identsym)
+					printf("%d %s ", l.token, l.name);
+
+				else if(l.token == numbersym)
+					printf("%d %d ", l.token, l.value);
+
+				else
+					printf("%d ", l.token);
+
+				if((i + 1) < j)
+					printf("| ");
+			}
+		}
+		printf("\n");
+	}
+	*listLength = j;
+>>>>>>> 30bb9c4591662e0a4d9a559c4ce21faa42dfd5a5
 	return lexeme_table;
 }
