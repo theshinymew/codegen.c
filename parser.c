@@ -14,30 +14,31 @@ symbol* parser(lexeme *list, int flag, int j)
     for(i = 0; i < j; i++)
     {
         l = list[i];
+        //printf("%s %d\n", l.name, l.token);
 
-        printf("\ni = %d\n", i);
+        // const declaration
+        if (l.token == constsym)
+        {
+            printf("That's a constant!\n");
+        }
 
-        /*
-        Check lecture 05a.
-        For constants, you must store kind = 1, name and value.
-        For variables, you must store kind = 2, name, L and M.
-        For procedures, you must store kind = 3, name, L and M.
-        */
+        // var declaration
+        if (l.token == varsym)
+        {
+            printf("That's a var!\n");
+        }
 
-        // table[i].kind = ; // const = 1, var = 2, proc = 3
+        // statement
 
-        printf("Getting table[i].name.\n");
-        strcpy(table[i].name, l.name);
+        // condition
 
-        printf("Getting table[i].value.\n");
-    	table[i].val = l.value;
+        // expression
 
-        printf("Getting table[i].level.\n");
-    	table[i].level = 0;
+        // term
 
-    	//table[i].addr; // M address
-    	//table[i].mark; // 0 = in use for code generation, 1 = unavailable
+        // factor
+
+
     }
-
     return table;
 }
