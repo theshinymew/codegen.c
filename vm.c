@@ -28,7 +28,7 @@ int base(int l, int base, int *stack)
 	return base;
 }
 
-void virtualMachine(instruction *code, int flag)
+void vm(instruction *code, int flag)
 {
 	
 }

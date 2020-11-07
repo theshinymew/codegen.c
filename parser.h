@@ -13,6 +13,18 @@ typedef struct symbol
 	int mark;
 } symbol;
 
-symbol* parser(lexeme *list, int flag, int j);
+symbol table[MAX_TABLE_SIZE];
+
+symbol* parser(lexeme *list, int flag);
+
+void PROGRAM();
+void BLOCK();
+void CONST_DECLARATION();
+void VAR_DECLARATION();
+void STATEMENT();
+void CONDITION();
+void EXPRESSION();
+void TERM();
+void FACTOR();
 
 #endif

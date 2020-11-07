@@ -21,15 +21,11 @@ token_type getAlphaTokenType(char *s)
 lexeme* lexer(FILE *fp, int flag)
 {
 	// Initialize variables
-	lexeme lexeme_table[MAX_TABLE_SIZE];
 	lexeme l;
 	char ch;
 	char buffer[32];
 	int i, j = 0;
 	error_type error;
-
-	// Special symbols hash table declaration
-	token_type ssym[256];
 
 	// Initialize symbol hash table
 	ssym['+'] = plussym;

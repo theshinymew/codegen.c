@@ -4,41 +4,132 @@
 #include "parser.h"
 #include "lex.h"
 
-symbol* parser(lexeme *list, int flag, int j)
+int i = 0;
+
+lexeme *list;
+
+void PROGRAM()
 {
-    int i;
-    lexeme l;
-    symbol table[500];
+    BLOCK();
+}
 
-    printf("\nj = %d\n", j);
-    for(i = 0; i < j; i++)
+void BLOCK()
+{
+    CONST_DECLARATION();
+    VAR_DECLARATION();
+    STATEMENT();   
+}
+
+// TODO: complete
+void CONST_DECLARATION()
+{
+    if(list[i].token == constsym)
     {
-        l = list[i];
-        //printf("%s %d\n", l.name, l.token);
-
-        // const declaration
-        if (l.token == constsym)
+        do
         {
-            printf("That's a constant!\n");
-        }
+            if(list[i].token != identsym)
+            {
+                // ERROR
+            }
 
-        // var declaration
-        if (l.token == varsym)
+            // save ident name
+
+            if( 0 /* ident name is already in symbol table */)
+            {
+                // ERROR
+            }
+            i++;
+
+            if(list[i].token != eqsym)
+            {
+                // ERROR
+            }
+            i++;
+
+            if(list[i].token != numbersym)
+            {
+                // ERROR
+            }
+
+            // Add to symbol table.
+            i++;
+        } while (list[i].token == commasym);
+        
+        if(list[i].token != semicolonsym)
         {
-            printf("That's a var!\n");
+            // ERROR
         }
-
-        // statement
-
-        // condition
-
-        // expression
-
-        // term
-
-        // factor
-
-
+        i++;
     }
+}
+
+// TODO: complete
+void VAR_DECLARATION()
+{
+    int numVars;
+    if(list[i].token == varsym)
+    {
+        numVars = 0;
+        do
+        {
+            numVars++;
+            i++;
+
+            if(list[i].error > 0)
+            {
+                // ERROR
+            }
+
+            if(  0/* ident is already in symbol table */ )
+            {
+                // ERROR
+            }
+
+            // Add to symbol table
+            i++;
+        } while(list[i].token == commasym);
+
+        if(list[i].token != semicolonsym)
+        {
+            // ERROR
+        }
+        i++;
+    }
+}
+
+void STATEMENT()
+{
+
+}
+
+void CONDITION()
+{
+
+}
+
+void EXPRESSION()
+{
+
+}
+
+void TERM()
+{
+
+}
+
+void FACTOR()
+{
+
+}
+
+symbol* parser(lexeme *lexList, int flag)
+{
+    // call program here
+    //program will call the rest until it's done
+    list = lexList;
+
+    PROGRAM();
+
+    symbol* table;
     return table;
 }

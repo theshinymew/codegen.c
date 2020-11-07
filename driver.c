@@ -45,8 +45,8 @@ int main(int argc, char **argv)
 
     lexeme *list = lexer(fp, lflag);
     symbol *table = parser(list, aflag);
-    instruction *code = generate_code(table, list);
-    virtualMachine(code, vflag);
+    instruction *code = codegen(table, list);
+    vm(code, vflag);
 
     return 0;
 }
