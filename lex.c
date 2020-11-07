@@ -18,7 +18,7 @@ token_type getAlphaTokenType(char *s)
 	return identsym;
 }
 ;
-lexeme* lexer(FILE *fp, int flag)
+lexeme* lexer(char *inputFile, int flag)
 {
 	// Initialize variables
 	lexeme *lexeme_table = malloc(sizeof(lexeme) * MAX_TABLE_SIZE);
@@ -48,13 +48,13 @@ lexeme* lexer(FILE *fp, int flag)
 	ssym['/' * 2 + '*'] = commentsym;
 	ssym['*' * 2 + '/'] = endcommentsym;
 
-	ch = fgetc(fp);
+	ch = getc(inputFile);
 	while(ch != EOF)
 	{
 		// Ignore whitespace
 		if(isspace(ch) || iscntrl(ch))
 		{
-			ch = fgetc(fp);
+			ch = getc(inputFile);
 		}
 
 		// Reserved word or identifier
@@ -64,7 +64,7 @@ lexeme* lexer(FILE *fp, int flag)
 			i = 1;
 			error = 0;
 			// Continue adding to buffer
-			while((ch = fgetc(fp)) != EOF && isalnum(ch))
+			while((ch = getc(inputFile)) != EOF && isalnum(ch))
 			{
 				buffer[i] =  ch;
 				i++;
@@ -92,7 +92,7 @@ lexeme* lexer(FILE *fp, int flag)
 			i = 1;
 			error = 0;
 			// Continue adding to buffer
-			while((ch = fgetc(fp)) != EOF && isalnum(ch))
+			while((ch = getc(inputFile)) != EOF && isalnum(ch))
 			{
 				buffer[i] = ch;
 				i++;
@@ -160,7 +160,7 @@ lexeme* lexer(FILE *fp, int flag)
 			}
 			else if(ch == '<')
 			{
-				ch = fgetc(fp);
+				ch = getc(inputFile);
 				if(ch == '>' || ch == '=') // "<>" | "<=" tokens
 				{
 					buffer[i] = ch;
@@ -191,7 +191,7 @@ lexeme* lexer(FILE *fp, int flag)
 			}
 			else if(ch == '>')
 			{
-				ch = fgetc(fp);
+				ch = getc(inputFile);
 				if(ch == '=') // ">=" token
 				{
 					buffer[i] = ch;
@@ -222,7 +222,7 @@ lexeme* lexer(FILE *fp, int flag)
 			}
 			else if(ch == ':')
 			{
-				ch = fgetc(fp);
+				ch = getc(inputFile);
 				if(ch == '=') // ":=" token
 				{
 					buffer[i] = ch;
@@ -256,7 +256,7 @@ lexeme* lexer(FILE *fp, int flag)
 			}
 			else if(ch == '/')
 			{
-				ch = fgetc(fp);
+				ch = getc(inputFile);
 				if(ch == '*') // Start comment
 				{
 					buffer[i] = ch;
@@ -272,11 +272,11 @@ lexeme* lexer(FILE *fp, int flag)
 
 					j++;
 
-					while((ch = fgetc(fp)) != EOF)
+					while((ch = getc(inputFile)) != EOF)
 					{
 						if(ch == '*')
 						{
-							ch = fgetc(fp);
+							ch = getc(inputFile);
 							if(ch == '/') // Exit comment
 							{
 								char temp = buffer[0];
@@ -330,7 +330,7 @@ lexeme* lexer(FILE *fp, int flag)
 
 				j++;
 			}
-			ch = fgetc(fp);
+			ch = getc(inputFile);
 		}
 	}
 
