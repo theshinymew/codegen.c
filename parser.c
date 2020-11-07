@@ -48,7 +48,7 @@ void BLOCK()
 {
     CONST_DECLARATION();
     VAR_DECLARATION();
-    STATEMENT();   
+    STATEMENT();
 }
 
 void CONST_DECLARATION()
@@ -63,7 +63,7 @@ void CONST_DECLARATION()
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(1);
             }
-            
+
             // save ident name
             name = list[current].name;
             if(lookup(name) != -1)
