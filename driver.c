@@ -42,7 +42,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    //TODO: read input file and print to the screen
+    // TODO: change driver.c so it reads the input file, saves it, and prints it to the screen (check Noelle's driver.c
+    //       it's just a while loop)
+    // TODO: change lex.c so it takes a string instead of the file pointer and reads from the string
 
     printf("Lex analysis with flag lflag: %d\n\n", lflag);
     lexeme *list = lexer(fp, lflag);

@@ -125,6 +125,8 @@ void STATEMENT()
         // fix JPC by setting M to current index
         code[jmpcx].m = cx;
     }
+    
+    // TODO: read and write for STATEMENT
 }
 
 void CONDITION()
@@ -174,4 +176,15 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
     PROGRAM();
     
     return code;
+
+    // TODO: finish codegen
+    /* NOTES: pseudocode is a mess
+              when she says token + [something] that means advance current by that amount
+              saving the code indexes is a pain you have to understand how the instruction works
+              if you don't that's ok just do the other instructions
+              cx is the code index, the index where the current statement is being saved 
+              check our hw1 vm.c to double check
+              uhhhh anything else just ask me
+    */
+
 }
