@@ -39,8 +39,9 @@ int lookup(char* name)
 void PROGRAM()
 {
     BLOCK();
+    
     if(TOKEN != periodsym)
-        printf("ERROR: Expected period terminator\n");
+        printf("ERROR: period expected\n");
 }
 
 void BLOCK()
@@ -353,9 +354,9 @@ void FACTOR()
     
 }
 
-symbol* parser(lexeme *lexList, int flag)
+symbol* parser(lexeme *lexeme_list, int flag)
 {
-    list = lexList;
+    list = lexeme_list;
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
     
     PROGRAM();

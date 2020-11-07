@@ -12,6 +12,6 @@ typedef struct instruction
 	int m;
 } instruction;
 
-instruction* codegen(symbol *table, lexeme *list);
+instruction* codegen(symbol *symbol_table, lexeme *lexeme_list);
 
 #endif
