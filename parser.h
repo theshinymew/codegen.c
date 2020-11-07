@@ -13,9 +13,10 @@ typedef struct symbol
 	int mark;
 } symbol;
 
-symbol table[MAX_TABLE_SIZE];
-
 symbol* parser(lexeme *list, int flag);
+
+void insert(int kind, char* name, int value, int level, int address, int mark);
+int lookup(char* name);
 
 void PROGRAM();
 void BLOCK();

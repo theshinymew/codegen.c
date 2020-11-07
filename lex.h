@@ -34,8 +34,6 @@ typedef struct lexeme
 	error_type error;
 } lexeme;
 
-lexeme lexeme_table[MAX_TABLE_SIZE];
-
 // Special symbols hash table declaration
 token_type ssym[256];
 

@@ -2,3 +2,4 @@
 resources/
 *.o
 src_prog
+*.txt

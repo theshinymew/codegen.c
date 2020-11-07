@@ -43,10 +43,14 @@ int main(int argc, char **argv)
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
+    printf("Lex analysis with flag lflag: %d\n\n", lflag);
     lexeme *list = lexer(fp, lflag);
+    printf("Parsing with flag aflag: %d\n\n", aflag);
+    printf("List is pointing to %p", list);
     symbol *table = parser(list, aflag);
+    printf("Generating instructions\n\n");
     instruction *code = codegen(table, list);
+    printf("Executing instructions with flag vflag: %d\n\n", vflag);
     vm(code, vflag);
-
     return 0;
 }

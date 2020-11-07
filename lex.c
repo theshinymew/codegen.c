@@ -21,6 +21,7 @@ token_type getAlphaTokenType(char *s)
 lexeme* lexer(FILE *fp, int flag)
 {
 	// Initialize variables
+	lexeme *lexeme_table = malloc(sizeof(lexeme) * MAX_TABLE_SIZE);
 	lexeme l;
 	char ch;
 	char buffer[32];
@@ -356,5 +357,7 @@ lexeme* lexer(FILE *fp, int flag)
 		}
 		printf("\n");
 	}
+
+	printf("lexeme_table address: %p", lexeme_table);
 	return lexeme_table;
 }
