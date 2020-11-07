@@ -40,7 +40,7 @@ void BLOCK()
 {
     CONST_DECLARATION();
     VAR_DECLARATION();
-    STATEMENT();   
+    STATEMENT();
 }
 
 // TODO: complete
@@ -56,7 +56,7 @@ void CONST_DECLARATION()
             {
                 // ERROR
             }
-            
+
             // save ident name
             char *name = list[current].name;
 
@@ -81,10 +81,10 @@ void CONST_DECLARATION()
             // Add to symbol table.
             insert(1, name, list[current].value, 0, 0, 0);
             symcount++;
-            
+
             current++;
         } while(list[current].token == commasym);
-        
+
         if(list[current].token != semicolonsym)
         {
             // ERROR
@@ -115,10 +115,10 @@ void VAR_DECLARATION()
             }
 
             // Add to symbol table
-            insert(2, list[current].name, 0, 0, varcount + 2, 0);
+            insert(2, list[current].name, 0, 0, varcount + 2, 0); // wrong?
             symcount++;
             varcount++;
-            
+
             current++;
         } while(list[current].token == commasym);
 
@@ -134,28 +134,101 @@ void STATEMENT()
 {
     if(list[current].token == identsym)
     {
-        //if()
+        if(0 /* not already in symbol table */ )
+        {
+            // ERROR
+        }
+        if(0 /* ident != var */ )
+        {
+            // ERROR
+        }
+
+        current++;
+
+        if(list[current].token != becomessym)
+        {
+            // ERROR
+        }
+
+        current++;
+        EXPRESSION();
+    }
+    else if(list[current].token == beginsym)
+    {
+
+    }
+    else if(list[current].token == ifsym)
+    {
+
+    }
+    else if(list[current].token == whilesym)
+    {
+
+    }
+    else if(list[current].token == readsym)
+    {
+
+    }
+    else if(list[current].token == writesym)
+    {
+
     }
 }
 
 void CONDITION()
 {
+    if(list[current].token == oddsym)
+    {
 
+    }
+    else
+    {
+
+    }
 }
 
 void EXPRESSION()
 {
-
+    if(list[current].token == plussym || list[current].token == minussym)
+    {
+        current++;
+    }
+    TERM();
+    while(list[current].token == plussym || list[current].token == minussym)
+    {
+        current++;
+        TERM();
+    }
 }
 
 void TERM()
 {
-
+    FACTOR();
+    while(list[current].token == multsym || list[current].token == slashsym)
+    {
+        current++;
+        FACTOR();
+    }
 }
 
 void FACTOR()
 {
+    if(list[current].token == identsym)
+    {
 
+    }
+    else if(list[current].token == numbersym)
+    {
+
+    }
+    else if(0 /* something */)
+    {
+
+    }
+    else
+    {
+        // ERROR
+    }
 }
 
 symbol* parser(lexeme *lexList, int flag)
@@ -164,7 +237,7 @@ symbol* parser(lexeme *lexList, int flag)
     //program will call the rest until it's done
     list = lexList;
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
-    
+
     printf("in parser(), calling program()\n");
     printf("passed: %p \t global: %p\n", lexList, list);
 
