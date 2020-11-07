@@ -1,22 +1,9 @@
-// Skyler Bolton
-// Alejandro Herrada
-
-#include "lex.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include "lex.h"
 
-#define MAX_IDENTIFIER_LENGTH 11
-#define MAX_NUMBER_LENGTH 5
-#define MAX_TABLE_SIZE 500
-
-
-// Reserved words declaration
-char *reserved[] = { "odd", "begin", "end", "if", "then", "while", "do", "call",
-					 "const", "var", "procedure", "write", "read", "else" };
-
-// Should these take lexeme structs instead?
 token_type getAlphaTokenType(char *s)
 {
 	for(int i = 0; i < 14; i++)
@@ -30,8 +17,8 @@ token_type getAlphaTokenType(char *s)
 
 	return identsym;
 }
-
-lexeme* lexer(FILE *fp, int flag, int *listLength)
+;
+lexeme* lexer(FILE *fp, int flag)
 {
 	// Initialize variables
 	lexeme lexeme_table[MAX_TABLE_SIZE];
@@ -92,7 +79,11 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 			strcpy(lexeme_table[j].name, buffer);
 			lexeme_table[j].token = getAlphaTokenType(buffer);
 			if(i > 12 && lexeme_table[j].token == identsym)
+			{
 				error = idtoolong;
+				printf("ERROR. Identifier is too long.");
+				exit(EXIT_FAILURE);
+			}
 			lexeme_table[j].error = error;
 
 			j++;
@@ -110,7 +101,11 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 				i++;
 
 				if(isalpha(ch))
+				{
 					error = invalidid;
+					printf("ERROR. Invalid identifier.");
+					exit(EXIT_FAILURE);
+				}
 			}
 
 			// Add lexeme to table
@@ -119,6 +114,8 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 				if(atoi(buffer) > 99999)
 				{
 					error = numtoolong;
+					printf("ERROR. Number is too long.");
+					exit(EXIT_FAILURE);
 				}
 			}
 
@@ -135,7 +132,11 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 				lexeme_table[j].value = atoi(buffer);
 				lexeme_table[j].token = numbersym;
 				if(i > 6)
+				{
 					error = numtoolong;
+					printf("ERROR. Number too long");
+					exit(EXIT_FAILURE);
+				}
 				lexeme_table[j].error = error;
 			}
 
@@ -250,6 +251,9 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 					lexeme_table[j].token = nulsym;
 					lexeme_table[j].error = invalidsym;
 
+					printf("ERROR. Invalid identifier.");
+					exit(EXIT_FAILURE);
+
 					j++;
 				}
 			}
@@ -324,6 +328,9 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 				lexeme_table[j].token = nulsym;
 				lexeme_table[j].error = invalidsym;
 
+				printf("ERROR. Invalid symbol.");
+				exit(EXIT_FAILURE);
+
 				j++;
 			}
 			ch = fgetc(fp);
@@ -353,6 +360,5 @@ lexeme* lexer(FILE *fp, int flag, int *listLength)
 		}
 		printf("\n");
 	}
-	*listLength = j;
 	return lexeme_table;
 }

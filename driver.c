@@ -8,8 +8,6 @@
 
 int main(int argc, char **argv)
 {
-    int i, j = 0;
-
     if(argc < 2)
     {
         printf("error: file name not given\n");
@@ -23,8 +21,8 @@ int main(int argc, char **argv)
         printf("error: input file could not be read\n");
         return 1;
     }
-
-    for(i = 2; argv[i] != NULL; i++)
+    
+    for(int i = 2; argv[i] != NULL; i++)
     {
         if(strcmp(argv[i], "-l") == 0)
         {
@@ -45,13 +43,9 @@ int main(int argc, char **argv)
     //TODO: remove file i/o from other vm.c
     //TODO: wrap print statements around flag condition: if(flag){print...}
 
-    printf("Calling lexer().\n");
-    lexeme *list = lexer(fp, lflag, &j);
-    printf("Calling parser().\n");
-    symbol *table = parser(list, aflag, j);
-    printf("Calling generate_code().\n");
+    lexeme *list = lexer(fp, lflag);
+    symbol *table = parser(list, aflag);
     instruction *code = generate_code(table, list);
-    printf("Calling virtualMachine().\n");
     virtualMachine(code, vflag);
 
     return 0;

@@ -1,9 +1,13 @@
 #ifndef __LEX_H
 #define __LEX_H
 
-#include <stdio.h>
+#define MAX_IDENTIFIER_LENGTH 11
+#define MAX_NUMBER_LENGTH 5
+#define MAX_TABLE_SIZE 500
 
-//TODO: typedef declarations here
+// Reserved words declaration
+static char *reserved[] = { "odd", "begin", "end", "if", "then", "while", "do", "call",
+					 		"const", "var", "procedure", "write", "read", "else" };
 
 // Token declaration
 typedef enum
@@ -30,6 +34,7 @@ typedef struct lexeme
 	error_type error;
 } lexeme;
 
-lexeme* lexer(FILE *fp, int flag, int *listLength);
+token_type getAlphaTokenType(char *s);
+lexeme* lexer(FILE *fp, int flag);
 
 #endif
