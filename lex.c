@@ -1,3 +1,6 @@
+// Alejandro Herrada
+// Skyler Bolton
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>

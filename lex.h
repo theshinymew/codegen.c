@@ -1,3 +1,6 @@
+// Alejandro Herrada
+// Skyler Bolton
+
 #ifndef __LEX_H
 #define __LEX_H
 
