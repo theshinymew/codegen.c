@@ -57,12 +57,10 @@ int main(int argc, char **argv)
 
     printf("%s\n", inputFile);
 
-    printf("Lex analysis with flag lflag: %d\n\n", lflag);
     lexeme *list = lexer(inputFile, lflag);
     symbol *table = parser(list);
-    printf("Generating instructions with flag aflag: %d\n\n", aflag);
+    printf("No errors, program is syntactically correct\n\n");
     instruction *code = codegen(table, list, aflag);
-    printf("Executing instructions with flag vflag: %d\n\n", vflag);
     vm(code, vflag);
     return 0;
 }

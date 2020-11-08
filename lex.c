@@ -355,7 +355,7 @@ lexeme* lexer(char *inputFile, int flag)
 					printf("| ");
 			}
 		}
-		printf("\n");
+		printf("\n\n");
 	}
 
 	return lexeme_table;
