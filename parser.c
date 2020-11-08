@@ -41,7 +41,10 @@ void PROGRAM()
     BLOCK();
     
     if(list[current].token != periodsym)
+    {
         printf("ERROR: period expected\n");
+        exit(1);
+    }
 }
 
 void BLOCK()

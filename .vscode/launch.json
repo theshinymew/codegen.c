@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/compile",
-            "args": ["testinput1.txt"],
+            "args": ["test/testcase1.txt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
