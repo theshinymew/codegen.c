@@ -1,6 +1,0 @@
-const n = 8;
-var i,h;
-begin
-  i := 3; 
-  h := 9;
-end.
