@@ -36,7 +36,7 @@ compile: $(SRC_OBJ)
 # type "make clean" to remove all .o files plus the src_prog binary
 
 clean:
-	rm -f *.o src_prog
+	rm -f *.o compile
 
 
 # type "make clobber" to remove all .o files (leaves src_prog binary)

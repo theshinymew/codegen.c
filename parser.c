@@ -43,7 +43,7 @@ void PROGRAM()
     if(list[current].token != periodsym)
     {
         printf("ERROR: period expected\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -64,7 +64,7 @@ void CONST_DECLARATION()
             if(list[current].token != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
             // save ident name
@@ -72,21 +72,21 @@ void CONST_DECLARATION()
             if(lookup(name) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
             current++;
             if(list[current].token != eqsym)
             {
-                printf("ERROR: identifier must be followed by '='\n");
-                exit(1);
+                printf("ERROR: constant declaration must be followed by '='\n");
+                exit(EXIT_FAILURE);
             }
             
             current++;
             if(list[current].token != numbersym)
             {
                 printf("ERROR: '=' must be followed by a number\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             
             // Add to symbol table.
@@ -98,7 +98,7 @@ void CONST_DECLARATION()
         if(list[current].token != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
         current++;
     }
@@ -115,7 +115,7 @@ void VAR_DECLARATION()
             if(list[current].token != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
             // save ident name
@@ -123,7 +123,7 @@ void VAR_DECLARATION()
             if(lookup(name) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
             // Add to symbol table.
@@ -135,7 +135,7 @@ void VAR_DECLARATION()
         if(list[current].token != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
         current++;
     }
@@ -149,20 +149,20 @@ void STATEMENT()
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         if(table[lookup(name)].kind != 2)
         {
             printf("ERROR: assignment to constant is not allowed\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
         if(list[current].token != becomessym)
         {
-            printf("ERROR: assignment operator expected\n");
-            exit(1);
+            printf("ERROR: ':=' expected\n");
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -182,7 +182,7 @@ void STATEMENT()
         if(list[current].token != endsym)
         {
             printf("ERROR: begin must be closed with end\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -197,7 +197,7 @@ void STATEMENT()
         if(list[current].token != thensym)
         {
             printf("ERROR: if condition must be followed by then\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -213,7 +213,7 @@ void STATEMENT()
         if(list[current].token != dosym)
         {
             printf("ERROR: while condition must be followed by do\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -227,20 +227,20 @@ void STATEMENT()
         if(list[current].token != identsym)
         {
             printf("ERROR: read statement must be followed by identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         name = list[current].name;
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         if(table[lookup(name)].kind != 2)
         {
             printf("ERROR: assignment to constant is not allowed\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -253,14 +253,14 @@ void STATEMENT()
         if(list[current].token != identsym)
         {
             printf("ERROR: write statement must be followed by identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         name = list[current].name;
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -279,11 +279,11 @@ void CONDITION()
     {
         EXPRESSION();
 
-        if(list[current].token != eqsym || list[current].token != neqsym || list[current].token != lessym || 
-           list[current].token != leqsym || list[current].token != gtrsym || list[current].token != geqsym)
+        if(list[current].token != eqsym && list[current].token != neqsym && list[current].token != lessym && 
+           list[current].token != leqsym && list[current].token != gtrsym && list[current].token != geqsym)
         {
             printf("ERROR: relational operator expected\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -326,7 +326,7 @@ void FACTOR()
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -343,7 +343,7 @@ void FACTOR()
         if(list[current].token != rparentsym)
         {
             printf("ERROR: right parenthesis missing\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         current++;
@@ -351,7 +351,7 @@ void FACTOR()
     else
     {
         printf("ERROR: the preceding factor cannot begin with this symbol\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
 }

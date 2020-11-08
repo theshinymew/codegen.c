@@ -78,7 +78,7 @@ lexeme* lexer(char *inputFile, int flag)
 			if(i > 12 && lexeme_table[j].token == identsym)
 			{
 				error = idtoolong;
-				printf("ERROR. Identifier is too long.");
+				printf("ERROR: identifier is too long\n");
 				exit(EXIT_FAILURE);
 			}
 			lexeme_table[j].error = error;
@@ -100,7 +100,7 @@ lexeme* lexer(char *inputFile, int flag)
 				if(isalpha(ch))
 				{
 					error = invalidid;
-					printf("ERROR. Invalid identifier.");
+					printf("ERROR: invalid identifier\n");
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -111,7 +111,7 @@ lexeme* lexer(char *inputFile, int flag)
 				if(atoi(buffer) > 99999)
 				{
 					error = numtoolong;
-					printf("ERROR. Number is too long.");
+					printf("ERROR: number is too long\n");
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -131,7 +131,7 @@ lexeme* lexer(char *inputFile, int flag)
 				if(i > 6)
 				{
 					error = numtoolong;
-					printf("ERROR. Number too long");
+					printf("ERROR: number is too long\n");
 					exit(EXIT_FAILURE);
 				}
 				lexeme_table[j].error = error;
@@ -248,7 +248,7 @@ lexeme* lexer(char *inputFile, int flag)
 					lexeme_table[j].token = nulsym;
 					lexeme_table[j].error = invalidsym;
 
-					printf("ERROR. Invalid identifier.");
+					printf("ERROR: invalid identifier\n");
 					exit(EXIT_FAILURE);
 
 					j++;
@@ -325,7 +325,7 @@ lexeme* lexer(char *inputFile, int flag)
 				lexeme_table[j].token = nulsym;
 				lexeme_table[j].error = invalidsym;
 
-				printf("ERROR. Invalid symbol.");
+				printf("ERROR: invalid symbol\n");
 				exit(EXIT_FAILURE);
 
 				j++;
