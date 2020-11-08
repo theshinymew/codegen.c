@@ -8,3 +8,4 @@ compile
 *.txt
 *.zip
 *.sh
+*.json
