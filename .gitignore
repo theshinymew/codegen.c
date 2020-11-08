@@ -1,5 +1,10 @@
 *.doc
 resources/
+test/
+.vscode/
 *.o
 src_prog
+compile
 *.txt
+*.zip
+*.sh
