@@ -134,7 +134,7 @@ void STATEMENT()
 
         current++;
         emit (9, 0, 0, 2);
-		emit (4, 0, 0, table[index].addr);
+		emit (4, 0, 0, table[current].addr);
     }
 
     if(TOKEN == writesym)
@@ -146,7 +146,7 @@ void STATEMENT()
 
         if(0 /* it's a var */)
         {
-            emit (3, 0, 0, table[index].addr);
+            emit (3, 0, 0, table[current].addr);
 			emit (9, 0, 0, 1);
         }
 
@@ -221,45 +221,57 @@ void EXPRESSION(int r)
 {
     if(TOKEN == plussym)
     {
-
+        current++;
     }
 
     if(TOKEN == minussym)
     {
-        // Stuff
+        current++;
+        TERM(/* regtoendupin */);
+        emit(10, /*regtoendupin*/, 0, 0);
+
         while(TOKEN == plussym || TOKEN == minussym)
         {
             if(TOKEN == plussym)
             {
-
+                current++;
+                TERM(/*regtoendupin + 1*/);
+                emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
             }
 
             if(TOKEN == minussym)
             {
-
+                current++;
+                TERM(/*regtoendupin + 1*/);
+                emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
             }
         }
+        return;
     }
 
-    TERM( /* regtoendupin */ );
+    TERM(regtoendupin);
 
     while(TOKEN == plussym || TOKEN == minussym)
     {
         if(TOKEN == plussym)
         {
-
+            current++;
+            TERM(/*regtoendupin + 1*/);
+            emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
         }
 
         if(TOKEN == minussym)
         {
-
+            current++;
+            TERM(/*regtoendupin + 1*/);
+            emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
         }
     }
 
     return;
 }
 
-void TERM()
+void TERM(int r)
 {
     FACTOR( /* regtoendupin */ );
 
@@ -267,18 +279,22 @@ void TERM()
     {
         if(TOKEN == multsym)
         {
-
+            current++;
+			FACTOR(regtoendupin + 1);
+			emit(13, regtoendupin, regtoendupin, regtoendupin + 1);
         }
 
         if(TOKEN == slashsym)
         {
-
+            current++;
+			FACTOR(regtoendupin + 1);
+			emit(14, regtoendupin, regtoendupin, regtoendupin + 1);
         }
     }
     return;
 }
 
-void FACTOR()
+void FACTOR(int r)
 {
     if(TOKEN == identsym)
     {
@@ -327,6 +343,7 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
     return code;
 
     // TODO: finish codegen
+    // TODO: ctrl + f "regtoendupin" and add whatever that is
     /* NOTES: pseudocode is a mess
               when she says token + [something] that means advance current by that amount
               saving the code indexes is a pain you have to understand how the instruction works
