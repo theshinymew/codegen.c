@@ -1,10 +1,10 @@
 # to run in terminal $ make
 
 CC = gcc
-OPT = -O3
-#OPT = -g
+#OPT = -O3
+DBG = -g
 WARN = -Wall
-CFLAGS = $(OPT) $(WARN) $(INC) $(LIB)
+CFLAGS = $(DBG) $(WARN) $(INC) $(LIB)
 
 # List all your .c files here (source files, excluding header files)
 SRC_CODE = driver.c lex.c parser.c codegen.c vm.c
@@ -16,15 +16,15 @@ SRC_OBJ = driver.o lex.o parser.o codegen.o vm.o
 
 # default rule
 
-all: src_prog
+all: compile
 	@echo "my work is done here..."
 
 
-# rule for making src_prog
+# rule for making compile
 
-src_prog: $(SRC_OBJ)
-	$(CC) -o src_prog $(CFLAGS) $(SRC_OBJ) -lm
-	@echo "-----------DONE WITH SRC_PROG-----------"
+compile: $(SRC_OBJ)
+	$(CC) -o compile $(CFLAGS) $(SRC_OBJ) -lm
+	@echo "-----------DONE WITH COMPILE-----------"
 
 
 # generic rule for converting any .c file to any .o file

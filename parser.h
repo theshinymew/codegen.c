@@ -13,7 +13,7 @@ typedef struct symbol
 	int mark;
 } symbol;
 
-symbol* parser(lexeme *lexeme_list, int flag);
+symbol* parser(lexeme *lexeme_list);
 
 void insert(int kind, char* name, int value, int level, int address, int mark);
 int lookup(char* name);

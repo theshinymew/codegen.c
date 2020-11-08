@@ -59,11 +59,9 @@ int main(int argc, char **argv)
 
     printf("Lex analysis with flag lflag: %d\n\n", lflag);
     lexeme *list = lexer(inputFile, lflag);
-    printf("Parsing with flag aflag: %d\n\n", aflag);
-    printf("List is pointing to %p", list);
-    symbol *table = parser(list, aflag);
-    printf("Generating instructions\n\n");
-    instruction *code = codegen(table, list);
+    symbol *table = parser(list);
+    printf("Generating instructions with flag aflag: %d\n\n", aflag);
+    instruction *code = codegen(table, list, aflag);
     printf("Executing instructions with flag vflag: %d\n\n", vflag);
     vm(code, vflag);
     return 0;

@@ -4,8 +4,6 @@
 #include "parser.h"
 #include "lex.h"
 
-#define TOKEN list[current].token // this is a pain to type
-
 lexeme *list;
 symbol *table;
 
@@ -22,6 +20,8 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
     table[symcount].level = level;
     table[symcount].addr = address;
     table[symcount].mark = mark;
+
+    symcount++;
 }
 
 // Symbol table lookup function
@@ -30,7 +30,7 @@ int lookup(char* name)
 {
     for(int i = 0; i < symcount; i++)
     {
-        if(!strcasecmp(name, table[i].name))
+        if(!strcmp(name, table[i].name))
             return i;
     }
     return -1;
@@ -40,7 +40,7 @@ void PROGRAM()
 {
     BLOCK();
     
-    if(TOKEN != periodsym)
+    if(list[current].token != periodsym)
         printf("ERROR: period expected\n");
 }
 
@@ -53,12 +53,12 @@ void BLOCK()
 
 void CONST_DECLARATION()
 {
-    if(TOKEN == constsym)
+    if(list[current].token == constsym)
     {
         do
         {
             current++;
-            if(TOKEN != identsym)
+            if(list[current].token != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(1);
@@ -73,14 +73,14 @@ void CONST_DECLARATION()
             }
 
             current++;
-            if(TOKEN != eqsym)
+            if(list[current].token != eqsym)
             {
                 printf("ERROR: identifier must be followed by '='\n");
                 exit(1);
             }
             
             current++;
-            if(TOKEN != numbersym)
+            if(list[current].token != numbersym)
             {
                 printf("ERROR: '=' must be followed by a number\n");
                 exit(1);
@@ -88,12 +88,11 @@ void CONST_DECLARATION()
             
             // Add to symbol table.
             insert(1, name, list[current].value, 0, 0, 0);
-            symcount++;
             current++;
         }
-        while(TOKEN == commasym);
+        while(list[current].token == commasym);
         
-        if(TOKEN != semicolonsym)
+        if(list[current].token != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
             exit(1);
@@ -104,12 +103,13 @@ void CONST_DECLARATION()
 
 void VAR_DECLARATION()
 {
-    if(TOKEN == varsym)
+    if(list[current].token == varsym)
     {
         do
         {
             current++;
-            if(TOKEN != identsym)
+            varcount++;
+            if(list[current].token != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(1);
@@ -125,13 +125,11 @@ void VAR_DECLARATION()
 
             // Add to symbol table.
             insert(2, name, 0, 0, varcount + 2, 0);
-            symcount++;
-            varcount++;
             current++;
         } 
-        while(TOKEN == commasym);
+        while(list[current].token == commasym);
 
-        if(TOKEN != semicolonsym)
+        if(list[current].token != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
             exit(1);
@@ -142,7 +140,7 @@ void VAR_DECLARATION()
 
 void STATEMENT()
 {
-    if(TOKEN == identsym)
+    if(list[current].token == identsym)
     {
         name = list[current].name;
         if(lookup(name) == -1)
@@ -158,7 +156,7 @@ void STATEMENT()
         }
 
         current++;
-        if(TOKEN != becomessym)
+        if(list[current].token != becomessym)
         {
             printf("ERROR: assignment operator expected\n");
             exit(1);
@@ -169,16 +167,16 @@ void STATEMENT()
         return;
     }
 
-    if(TOKEN == beginsym)
+    if(list[current].token == beginsym)
     {
         do
         {
             current++;
             STATEMENT();
         }
-        while(TOKEN == semicolonsym);
+        while(list[current].token == semicolonsym);
 
-        if(TOKEN != endsym)
+        if(list[current].token != endsym)
         {
             printf("ERROR: begin must be closed with end\n");
             exit(1);
@@ -188,12 +186,12 @@ void STATEMENT()
         return;        
     }
 
-    if(TOKEN == ifsym)
+    if(list[current].token == ifsym)
     {
         current++;
         CONDITION();
         
-        if(TOKEN != thensym)
+        if(list[current].token != thensym)
         {
             printf("ERROR: if condition must be followed by then\n");
             exit(1);
@@ -204,12 +202,12 @@ void STATEMENT()
         return;
     }
 
-    if(TOKEN == whilesym)
+    if(list[current].token == whilesym)
     {
         current++;
         CONDITION();
 
-        if(TOKEN != dosym)
+        if(list[current].token != dosym)
         {
             printf("ERROR: while condition must be followed by do\n");
             exit(1);
@@ -220,10 +218,10 @@ void STATEMENT()
         return;        
     }
 
-    if(TOKEN == readsym)
+    if(list[current].token == readsym)
     {
         current++;
-        if(TOKEN != identsym)
+        if(list[current].token != identsym)
         {
             printf("ERROR: read statement must be followed by identifier\n");
             exit(1);
@@ -246,10 +244,10 @@ void STATEMENT()
         return;
     }
 
-    if(TOKEN == writesym)
+    if(list[current].token == writesym)
     {
         current++;
-        if(TOKEN != identsym)
+        if(list[current].token != identsym)
         {
             printf("ERROR: write statement must be followed by identifier\n");
             exit(1);
@@ -269,7 +267,7 @@ void STATEMENT()
 
 void CONDITION()
 {
-    if(TOKEN == oddsym)
+    if(list[current].token == oddsym)
     {
         current++;
         EXPRESSION();
@@ -278,7 +276,8 @@ void CONDITION()
     {
         EXPRESSION();
 
-        if(TOKEN != eqsym || TOKEN != neqsym || TOKEN != lessym || TOKEN != leqsym || TOKEN != gtrsym || TOKEN != geqsym)
+        if(list[current].token != eqsym || list[current].token != neqsym || list[current].token != lessym || 
+           list[current].token != leqsym || list[current].token != gtrsym || list[current].token != geqsym)
         {
             printf("ERROR: relational operator expected\n");
             exit(1);
@@ -291,13 +290,13 @@ void CONDITION()
 
 void EXPRESSION()
 {
-    if(TOKEN == plussym || TOKEN == minussym)
+    if(list[current].token == plussym || list[current].token == minussym)
     {
         current++;
     }
     TERM();
 
-    while(TOKEN == plussym || TOKEN == minussym)
+    while(list[current].token == plussym || list[current].token == minussym)
     {
         current++;
         TERM();
@@ -309,7 +308,7 @@ void TERM()
 {
     FACTOR();
 
-    while(TOKEN == multsym || TOKEN == slashsym)
+    while(list[current].token == multsym || list[current].token == slashsym)
     {
         current++;
         FACTOR();
@@ -318,7 +317,7 @@ void TERM()
 
 void FACTOR()
 {
-    if(TOKEN == identsym)
+    if(list[current].token == identsym)
     {
         name = list[current].name;
         if(lookup(name) == -1)
@@ -329,16 +328,16 @@ void FACTOR()
 
         current++;
     }
-    else if(TOKEN == numbersym)
+    else if(list[current].token == numbersym)
     {
         current++;
     }
-    else if(TOKEN == lparentsym)
+    else if(list[current].token == lparentsym)
     {
         current++;
         EXPRESSION();
 
-        if(TOKEN != rparentsym)
+        if(list[current].token != rparentsym)
         {
             printf("ERROR: right parenthesis missing\n");
             exit(1);
@@ -354,7 +353,7 @@ void FACTOR()
     
 }
 
-symbol* parser(lexeme *lexeme_list, int flag)
+symbol* parser(lexeme *lexeme_list)
 {
     list = lexeme_list;
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);

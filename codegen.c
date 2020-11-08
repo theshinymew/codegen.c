@@ -4,81 +4,77 @@
 #include "parser.h"
 #include "codegen.h"
 
-#define TOKEN list[current].token // this is a pain to type
-
 lexeme *list;
 symbol *table;
 instruction *code;
 
 // Global variable to keep track of current token
-int current = 0;
+int current;
 int tx; // symbol table current
 int cx = 0; // code current
-int tempcx;
 char *name;
-
-int regtoendupin = 0;
 
 void CPROGRAM()
 {
     // emit JMP for main
-    emit(7, 0, 0, 1);
+    emit(JMP, 0, 0, 1);
 
     CBLOCK();
 
     // emit HALT
-    emit(9, 0, 0, 3);
+    emit(SYS, 0, 0, 3);
 }
 
 void CBLOCK()
 {
     int numvars = 0;
-    if(TOKEN == constsym)
+    if(list[current].token == constsym)
     {
         do
         {
             current += 4;
         }
-        while(TOKEN == commasym);
+        while(list[current].token == commasym);
 
         current++;
     }
-    if (TOKEN == varsym)
+    if (list[current].token == varsym)
     {
         do
         {
             numvars++;
             current += 2;
         }
-        while(TOKEN == commasym);
+        while(list[current].token == commasym);
 
         current++;
     }
 
     // emit INC
-    emit(6, 0, 0, 3 + numvars);
+    emit(INC, 0, 0, 3 + numvars);
+    CSTATEMENT();
 }
 
 void CSTATEMENT()
 {
-    if(TOKEN == identsym)
+    if(list[current].token == identsym)
     {
         name = list[current].name;
         // save symbol table current of identifier
-        int current = lookup(name);
+        int temp = lookup(name);
         current += 2;
         CEXPRESSION(0);
 
         //emit STO
-        emit(4, 0, 0, table[current].addr);
+        emit(STO, 0, 0, table[temp].addr);
     }
 
-    if(TOKEN == beginsym)
+    if(list[current].token == beginsym)
     {
         current++;
         CSTATEMENT();
 
-        while(TOKEN == semicolonsym)
+        while(list[current].token == semicolonsym)
         {
             current++;
             CSTATEMENT();
@@ -87,7 +83,7 @@ void CSTATEMENT()
         current++;
     }
 
-    if(TOKEN == ifsym)
+    if(list[current].token == ifsym)
     {
         current++;
         CCONDITION();
@@ -95,7 +91,7 @@ void CSTATEMENT()
         // store current code current to fix JPC later
         int jpccx = cx;
         // emit JPC
-        emit(8, 0, 0, 0);
+        emit(JPC, 0, 0, 0);
 
         current++;
         CSTATEMENT();
@@ -104,59 +100,69 @@ void CSTATEMENT()
         code[jpccx].m = cx;
     }
 
-    if(TOKEN == whilesym)
+    if(list[current].token == whilesym)
     {
         current++;
 
-        // store current code current for CCONDITION
+        // store current code index current for condition
         int condcx = cx;
 
         CCONDITION();
 
         current++;
 
-        // store current code current for jump
+        // store current code index for jmp
         int jmpcx = cx;
         // emit JPC
-        emit(8, 0, 0, 0);
+        emit(JPC, 0, 0, 0);
         CSTATEMENT();
 
         // emit JMP
-        emit(7, 0, 0, condcx);
+        emit(JMP, 0, 0, condcx);
 
         // fix JPC by setting M to current current
         code[jmpcx].m = cx;
     }
 
-    if(TOKEN == readsym)
+    if(list[current].token == readsym)
     {
         current++;
 
-        // TODO: Save the symbol table current
+        name = list[current].name;
+        // save symbol table current of identifier
+        int temp = lookup(name);
 
         current++;
-        emit (9, 0, 0, 2);
-		emit (4, 0, 0, table[current].addr);
+
+        // emit READ
+        emit(SYS, 0, 0, 2);
+        // emit STO
+        emit(STO, 0, 0, table[temp].addr);
     }
 
-    if(TOKEN == writesym)
+    if(list[current].token == writesym)
     {
         current++;
 
-        // TODO: Save the symbol table current
-        // TODO: why are these CCONDITIONs different?
-
-        if(0 /* it's a var */)
+        name = list[current].name;
+        // save symbol table current of identifier
+        int temp = lookup(name);
+        
+        // if it's a var
+        if(table[temp].kind == 2)
         {
-            emit (3, 0, 0, table[current].addr);
-			emit (9, 0, 0, 1);
+            // emit LOD
+            emit(LOD, 0, 0, table[temp].addr);
+            // emit WRITE
+            emit(SYS, 0, 0, 1);
         }
-
-        if(0 /* it's a var */)
+        // if it's a const
+        if(table[temp].kind == 1)
         {
-            // TODO: what does this line mean
-            //emit (1, 0, 0, M comes from the symbol table (val));
-			emit (9, 0, 0, 1);
+            // emit LIT
+            emit(LIT, 0, 0, table[temp].addr);
+            // emit WRITE
+            emit(SYS, 0, 0, 1);
         }
         current++;
     }
@@ -164,133 +170,126 @@ void CSTATEMENT()
 
 void CCONDITION()
 {
-    if(TOKEN == oddsym)
+    if(list[current].token == oddsym)
     {
         current++;
         CEXPRESSION(0);
-        emit (15, 0, 0, 0);
+        emit(ODD, 0, 0, 0);
     }
-
     else
     {
         CEXPRESSION(0);
-        if(TOKEN == eqsym)
+        if(list[current].token == eqsym)
         {
             current++;
             CEXPRESSION(1);
-            emit (17, 0, 0, 1);
+            emit(EQL, 0, 0, 1);
+        }
+        if(list[current].token == neqsym)
+        {
+            current++;
+            CEXPRESSION(1);
+            emit(NEQ, 0, 0, 1);
+        }
+        if(list[current].token == lessym)
+        {
+            current++;
+            CEXPRESSION(1);
+            emit(LSS, 0, 0, 1);
+        }
+        if(list[current].token == leqsym)
+        {
+            current++;
+            CEXPRESSION(1);
+            emit(LEQ, 0, 0, 1);
         }
 
-        if(TOKEN == neqsym) // <>?
+        if(list[current].token == gtrsym)
         {
             current++;
             CEXPRESSION(1);
-            emit (18, 0, 0, 1);
+            emit(GTR, 0, 0, 1);
         }
 
-        if(TOKEN == lessym)
+        if(list[current].token == geqsym)
         {
             current++;
             CEXPRESSION(1);
-            emit (19, 0, 0, 1);
-        }
-
-        if(TOKEN == leqsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (20, 0, 0, 1);
-        }
-
-        if(TOKEN == gtrsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (21, 0, 0, 1);
-        }
-
-        if(TOKEN == geqsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (22, 0, 0, 1);
+            emit(GEQ, 0, 0, 1);
         }
     }
-    return;
 }
 
 void CEXPRESSION(int r)
 {
-    if(TOKEN == plussym)
+    if(list[current].token == plussym)
     {
         current++;
     }
 
-    if(TOKEN == minussym)
+    if(list[current].token == minussym)
     {
         current++;
-        CTERM(regtoendupin);
-        emit(10, regtoendupin, 0, 0);
+        CTERM(r);
+        emit(NEG, r, 0, 0);
 
-        while(TOKEN == plussym || TOKEN == minussym)
+        while(list[current].token == plussym || list[current].token == minussym)
         {
-            if(TOKEN == plussym)
+            if(list[current].token == plussym)
             {
                 current++;
-                CTERM(regtoendupin + 1);
-                emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
+                CTERM(r + 1);
+                emit(ADD, r, r, r + 1);
             }
 
-            if(TOKEN == minussym)
+            if(list[current].token == minussym)
             {
                 current++;
-                CTERM(regtoendupin + 1);
-                emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
+                CTERM(r + 1);
+                emit(SUB, r, r, r + 1);
             }
         }
         return;
     }
 
-    CTERM(regtoendupin);
+    CTERM(r);
 
-    while(TOKEN == plussym || TOKEN == minussym)
+    while(list[current].token == plussym || list[current].token == minussym)
     {
-        if(TOKEN == plussym)
+        if(list[current].token == plussym)
         {
             current++;
-            CTERM(regtoendupin + 1);
-            emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
+            CTERM(r + 1);
+            emit(ADD, r, r, r + 1);
         }
 
-        if(TOKEN == minussym)
+        if(list[current].token == minussym)
         {
             current++;
-            CTERM(regtoendupin + 1);
-            emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
+            CTERM(r + 1);
+            emit(SUB, r, r, r + 1);
         }
     }
-
-    return;
 }
 
 void CTERM(int r)
 {
-    CFACTOR(regtoendupin);
+    CFACTOR(r);
 
-    while(TOKEN == multsym || TOKEN == slashsym)
+    while(list[current].token == multsym || list[current].token == slashsym)
     {
-        if(TOKEN == multsym)
+        if(list[current].token == multsym)
         {
             current++;
-			CFACTOR(regtoendupin + 1);
-			emit(13, regtoendupin, regtoendupin, regtoendupin + 1);
+			CFACTOR(r + 1);
+			emit(MUL, r, r, r + 1);
         }
 
-        if(TOKEN == slashsym)
+        if(list[current].token == slashsym)
         {
             current++;
-			CFACTOR(regtoendupin + 1);
-			emit(14, regtoendupin, regtoendupin, regtoendupin + 1);
+			CFACTOR(r + 1);
+			emit(DIV, r, r, r + 1);
         }
     }
     return;
@@ -298,35 +297,33 @@ void CTERM(int r)
 
 void CFACTOR(int r)
 {
-    if(TOKEN == identsym)
+    if(list[current].token == identsym)
     {
-        // Save the symbol table current
-
-        if(TOKEN == constsym)
+        name = list[current].name;
+        // save symbol table current of identifier
+        int temp = lookup(name);
+        
+        if(table[temp].kind == 1)
         {
-            emit(1, regtoendupin, 0, table[current].val);
+            emit(LIT, r, 0, table[temp].val);
         }
-
-        if(TOKEN == varsym)
+        if(table[temp].kind == 2)
         {
-            emit(3, regtoendupin, 0, table[current].addr);
+            emit(LOD, r, 0, table[temp].addr);
         }
         current++;
     }
-
-    else if(TOKEN == numbersym)
+    else if(list[current].token == numbersym)
     {
-        emit(1, regtoendupin, 0, table[current].val);
+        emit(LIT, r, 0, list[current].value);
         current++;
     }
-
     else
     {
         current++;
-		CEXPRESSION(regtoendupin);
+		CEXPRESSION(r);
 		current++;
     }
-    return;
 }
 
 void emit(int op, int r, int l, int m)
@@ -347,25 +344,28 @@ void emit(int op, int r, int l, int m)
 
 }
 
-instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
+instruction* codegen(symbol *symbol_table, lexeme *lexeme_list, int flag)
 {
     table = symbol_table;
     list = lexeme_list;
     code = malloc(sizeof(instruction) * 500);
 
+    current = 0;
     CPROGRAM();
 
+    if(flag)
+    {
+        printf("Line OP  R   L   M\n");
+	    for(int i = 0; i < cx; i++)
+	    {
+            // Print line and opcode.
+            printf("%-4d %s ", i, opcodes[code[i].op]);
+
+            // Print line of instructions.
+            printf("%-3d %-3d %-3d\n", code[i].r, code[i].l, code[i].m);
+	    }
+	    printf("\n");
+    }
+
     return code;
-
-    // TODO: finish codegen
-    // TODO: ctrl + f "regtoendupin" and add whatever that is
-    /* NOTES: pseudocode is a mess
-              when she says token + [something] that means advance current by that amount
-              saving the code currentes is a pain you have to understand how the instruction works
-              if you don't that's ok just do the other instructions
-              cx is the code current, the current where the current CSTATEMENT is being saved
-              check our hw1 vm.c to double check
-              uhhhh anything else just ask me
-    */
-
 }

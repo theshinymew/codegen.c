@@ -1,5 +1,6 @@
-var x, y;
+const n = 8;
+var i,h;
 begin
-	y := 3;
-	x := y + 56;
+  i := 3; 
+  h := 9;
 end.

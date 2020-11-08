@@ -17,16 +17,15 @@ token_type getAlphaTokenType(char *s)
 
 	return identsym;
 }
-;
+
 lexeme* lexer(char *inputFile, int flag)
 {
-	printf("%s\n", inputFile);
 	// Initialize variables
 	lexeme *lexeme_table = malloc(sizeof(lexeme) * MAX_TABLE_SIZE);
 	lexeme l;
 	char ch;
 	char buffer[32];
-	int i, j = 0;
+	int i, j, k = 0;
 	error_type error;
 
 	// Initialize symbol hash table
@@ -49,15 +48,13 @@ lexeme* lexer(char *inputFile, int flag)
 	ssym['/' * 2 + '*'] = commentsym;
 	ssym['*' * 2 + '/'] = endcommentsym;
 
-	printf("getting ch from inputFile string, then entering while loop\n");
-	ch = getc(inputFile);
+	ch = inputFile[0];
 	while(ch != '\0')
 	{
-		printf("ch: %c\n", ch);
 		// Ignore whitespace
 		if(isspace(ch) || iscntrl(ch))
 		{
-			ch = getc(inputFile);
+			ch = inputFile[++k];
 		}
 
 		// Reserved word or identifier
@@ -67,7 +64,7 @@ lexeme* lexer(char *inputFile, int flag)
 			i = 1;
 			error = 0;
 			// Continue adding to buffer
-			while((ch = getc(inputFile)) != '\0' && isalnum(ch))
+			while((ch = inputFile[++k]) != '\0' && isalnum(ch))
 			{
 				buffer[i] =  ch;
 				i++;
@@ -95,7 +92,7 @@ lexeme* lexer(char *inputFile, int flag)
 			i = 1;
 			error = 0;
 			// Continue adding to buffer
-			while((ch = getc(inputFile)) != '\0' && isalnum(ch))
+			while((ch = inputFile[++k]) != '\0' && isalnum(ch))
 			{
 				buffer[i] = ch;
 				i++;
@@ -163,7 +160,7 @@ lexeme* lexer(char *inputFile, int flag)
 			}
 			else if(ch == '<')
 			{
-				ch = getc(inputFile);
+				ch = inputFile[++k];;
 				if(ch == '>' || ch == '=') // "<>" | "<=" tokens
 				{
 					buffer[i] = ch;
@@ -194,7 +191,7 @@ lexeme* lexer(char *inputFile, int flag)
 			}
 			else if(ch == '>')
 			{
-				ch = getc(inputFile);
+				ch = inputFile[++k];;
 				if(ch == '=') // ">=" token
 				{
 					buffer[i] = ch;
@@ -225,7 +222,7 @@ lexeme* lexer(char *inputFile, int flag)
 			}
 			else if(ch == ':')
 			{
-				ch = getc(inputFile);
+				ch = inputFile[++k];;
 				if(ch == '=') // ":=" token
 				{
 					buffer[i] = ch;
@@ -259,7 +256,7 @@ lexeme* lexer(char *inputFile, int flag)
 			}
 			else if(ch == '/')
 			{
-				ch = getc(inputFile);
+				ch = inputFile[++k];;
 				if(ch == '*') // Start comment
 				{
 					buffer[i] = ch;
@@ -275,11 +272,11 @@ lexeme* lexer(char *inputFile, int flag)
 
 					j++;
 
-					while((ch = getc(inputFile)) != EOF)
+					while((ch = inputFile[++k]) != '\0')
 					{
 						if(ch == '*')
 						{
-							ch = getc(inputFile);
+							ch = inputFile[++k];;
 							if(ch == '/') // Exit comment
 							{
 								char temp = buffer[0];
@@ -333,11 +330,11 @@ lexeme* lexer(char *inputFile, int flag)
 
 				j++;
 			}
-			ch = getc(inputFile);
+			ch = inputFile[++k];
 		}
 	}
 
-	if (flag == 1)
+	if(flag)
 	{
 		printf("\nLexeme List:\n");
 		for(i = 0; i < j; i++)
@@ -361,6 +358,5 @@ lexeme* lexer(char *inputFile, int flag)
 		printf("\n");
 	}
 
-	printf("lexeme_table address: %p", lexeme_table);
 	return lexeme_table;
 }
