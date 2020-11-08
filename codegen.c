@@ -17,20 +17,18 @@ int cx = 0; // code index
 int tempcx;
 char *name;
 
-int regtoendupin = 0;
-
-void CPROGRAM()
+void PROGRAM()
 {
     // emit JMP for main
     emit(7, 0, 0, 1);
-
-    CBLOCK();
+    
+    BLOCK();
 
     // emit HALT
     emit(9, 0, 0, 3);
 }
 
-void CBLOCK()
+void BLOCK()
 {
     int numvars = 0;
     if(TOKEN == constsym)
@@ -38,9 +36,9 @@ void CBLOCK()
         do
         {
             current += 4;
-        }
+        } 
         while(TOKEN == commasym);
-
+        
         current++;
     }
     if (TOKEN == varsym)
@@ -49,17 +47,17 @@ void CBLOCK()
         {
             numvars++;
             current += 2;
-        }
+        } 
         while(TOKEN == commasym);
-
-        current++;
+        
+        current++;        
     }
 
     // emit INC
     emit(6, 0, 0, 3 + numvars);
 }
 
-void CSTATEMENT()
+void STATEMENT()
 {
     if(TOKEN == identsym)
     {
@@ -67,7 +65,7 @@ void CSTATEMENT()
         // save symbol table index of identifier
         int index = lookup(name);
         current += 2;
-        CEXPRESSION(0);
+        EXPRESSION(0);
 
         //emit STO
         emit(4, 0, 0, table[index].addr);
@@ -76,29 +74,29 @@ void CSTATEMENT()
     if(TOKEN == beginsym)
     {
         current++;
-        CSTATEMENT();
+        STATEMENT();
 
         while(TOKEN == semicolonsym)
         {
             current++;
-            CSTATEMENT();
+            STATEMENT();
         }
 
-        current++;
+        current++;        
     }
 
     if(TOKEN == ifsym)
     {
         current++;
-        CCONDITION();
-
+        CONDITION();
+        
         // store current code index to fix JPC later
         int jpccx = cx;
         // emit JPC
         emit(8, 0, 0, 0);
-
+        
         current++;
-        CSTATEMENT();
+        STATEMENT();
 
         // fix JPC by setting M to current index
         code[jpccx].m = cx;
@@ -107,11 +105,11 @@ void CSTATEMENT()
     if(TOKEN == whilesym)
     {
         current++;
-
-        // store current code index for CCONDITION
+        
+        // store current code index for condition
         int condcx = cx;
 
-        CCONDITION();
+        CONDITION();
 
         current++;
 
@@ -119,7 +117,7 @@ void CSTATEMENT()
         int jmpcx = cx;
         // emit JPC
         emit(8, 0, 0, 0);
-        CSTATEMENT();
+        STATEMENT();
 
         // emit JMP
         emit(7, 0, 0, condcx);
@@ -127,192 +125,27 @@ void CSTATEMENT()
         // fix JPC by setting M to current index
         code[jmpcx].m = cx;
     }
-
-    if(TOKEN == readsym)
-    {
-        current++;
-
-        // TODO: Save the symbol table index
-
-        current++;
-        emit (9, 0, 0, 2);
-		emit (4, 0, 0, table[current].addr);
-    }
-
-    if(TOKEN == writesym)
-    {
-        current++;
-
-        // TODO: Save the symbol table index
-        // TODO: why are these CCONDITIONs different?
-
-        if(0 /* it's a var */)
-        {
-            emit (3, 0, 0, table[current].addr);
-			emit (9, 0, 0, 1);
-        }
-
-        if(0 /* it's a var */)
-        {
-            // TODO: what does this line mean
-            //emit (1, 0, 0, M comes from the symbol table (val));
-			emit (9, 0, 0, 1);
-        }
-        current++;
-    }
+    
+    // TODO: read and write for STATEMENT
 }
 
-void CCONDITION()
+void CONDITION()
 {
-    if(TOKEN == oddsym)
-    {
-        current++;
-        CEXPRESSION(0);
-        emit (15, 0, 0, 0);
-    }
-
-    else
-    {
-        CEXPRESSION(0);
-        if(TOKEN == eqsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (17, 0, 0, 1);
-        }
-
-        if(TOKEN == neqsym) // <>?
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (18, 0, 0, 1);
-        }
-
-        if(TOKEN == lessym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (19, 0, 0, 1);
-        }
-
-        if(TOKEN == leqsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (20, 0, 0, 1);
-        }
-
-        if(TOKEN == gtrsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (21, 0, 0, 1);
-        }
-
-        if(TOKEN == geqsym)
-        {
-            current++;
-            CEXPRESSION(1);
-            emit (22, 0, 0, 1);
-        }
-    }
     return;
 }
 
-void CEXPRESSION(int r)
+void EXPRESSION(int r)
 {
-    if(TOKEN == plussym)
-    {
-        current++;
-    }
-
-    if(TOKEN == minussym)
-    {
-        current++;
-        CTERM(regtoendupin);
-        emit(10, regtoendupin, 0, 0);
-
-        while(TOKEN == plussym || TOKEN == minussym)
-        {
-            if(TOKEN == plussym)
-            {
-                current++;
-                CTERM(regtoendupin + 1);
-                emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
-            }
-
-            if(TOKEN == minussym)
-            {
-                current++;
-                CTERM(regtoendupin + 1);
-                emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
-            }
-        }
-        return;
-    }
-
-    CTERM(regtoendupin);
-
-    while(TOKEN == plussym || TOKEN == minussym)
-    {
-        if(TOKEN == plussym)
-        {
-            current++;
-            CTERM(regtoendupin + 1);
-            emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
-        }
-
-        if(TOKEN == minussym)
-        {
-            current++;
-            CTERM(regtoendupin + 1);
-            emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
-        }
-    }
-
     return;
 }
 
-void CTERM(int r)
+void TERM()
 {
-    CFACTOR(regtoendupin);
-
-    while(TOKEN == multsym || TOKEN == slashsym)
-    {
-        if(TOKEN == multsym)
-        {
-            current++;
-			CFACTOR(regtoendupin + 1);
-			emit(13, regtoendupin, regtoendupin, regtoendupin + 1);
-        }
-
-        if(TOKEN == slashsym)
-        {
-            current++;
-			CFACTOR(regtoendupin + 1);
-			emit(14, regtoendupin, regtoendupin, regtoendupin + 1);
-        }
-    }
     return;
 }
 
-void CFACTOR(int r)
+void FACTOR()
 {
-    if(TOKEN == identsym)
-    {
-
-    }
-
-    else if(TOKEN == numbersym)
-    {
-
-    }
-
-    else
-    {
-
-    }
-
     return;
 }
 
@@ -331,7 +164,7 @@ void emit(int op, int r, int l, int m)
         code[cx].m = m;
         cx++;
     }
-
+    
 }
 
 instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
@@ -339,18 +172,17 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
     table = symbol_table;
     list = lexeme_list;
     code = malloc(sizeof(instruction) * 500);
-
-    CPROGRAM();
-
+    
+    PROGRAM();
+    
     return code;
 
     // TODO: finish codegen
-    // TODO: ctrl + f "regtoendupin" and add whatever that is
     /* NOTES: pseudocode is a mess
               when she says token + [something] that means advance current by that amount
               saving the code indexes is a pain you have to understand how the instruction works
               if you don't that's ok just do the other instructions
-              cx is the code index, the index where the current CSTATEMENT is being saved
+              cx is the code index, the index where the current statement is being saved 
               check our hw1 vm.c to double check
               uhhhh anything else just ask me
     */

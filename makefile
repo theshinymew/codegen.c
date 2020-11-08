@@ -11,7 +11,7 @@ SRC_CODE = driver.c lex.c parser.c codegen.c vm.c
 
 # List corresponding compiled object files here (.o files)
 SRC_OBJ = driver.o lex.o parser.o codegen.o vm.o
-
+ 
 #################################
 
 # default rule
@@ -28,7 +28,7 @@ src_prog: $(SRC_OBJ)
 
 
 # generic rule for converting any .c file to any .o file
-
+ 
 .c.o:
 	$(CC) $(CFLAGS)  -c $*.c
 

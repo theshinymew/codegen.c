@@ -13,7 +13,7 @@ int main(int argc, char **argv)
         printf("ERROR: file name not given\n");
         return 1;
     }
-
+    
     int lflag = 0, aflag = 0, vflag = 0;
 
     if(argc == 5)
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
             else if(argv[i][1] == 'v')
                 vflag = 1;
         }
-    }
+    }    
 
     FILE *fp;
     if((fp = fopen(argv[1], "r")) == NULL)
@@ -42,23 +42,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    char *inputFile = malloc(500 * sizeof(char));
-    char c = fgetc(fp);
-    int i = 0;
-
-    while (1)
-    {
-    	inputFile[i++] = c;
-    	c = fgetc(fp);
-    	if (c == EOF)
-    		break;
-    }
-    inputFile[i] = '\0';
-
-    printf("%s\n", inputFile);
+    // TODO: change driver.c so it reads the input file, saves it, and prints it to the screen (check Noelle's driver.c
+    //       it's just a while loop)
+    // TODO: change lex.c so it takes a string instead of the file pointer and reads from the string
 
     printf("Lex analysis with flag lflag: %d\n\n", lflag);
-    lexeme *list = lexer(inputFile, lflag);
+    lexeme *list = lexer(fp, lflag);
     printf("Parsing with flag aflag: %d\n\n", aflag);
     printf("List is pointing to %p", list);
     symbol *table = parser(list, aflag);
