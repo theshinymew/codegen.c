@@ -38,6 +38,6 @@ typedef struct lexeme
 token_type ssym[256];
 
 token_type getAlphaTokenType(char *s);
-lexeme* lexer(FILE *fp, int flag);
+lexeme* lexer(char *inputFile, int flag);
 
 #endif
