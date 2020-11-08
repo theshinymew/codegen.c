@@ -17,18 +17,20 @@ int cx = 0; // code index
 int tempcx;
 char *name;
 
-void PROGRAM()
+int regtoendupin = 0;
+
+void CPROGRAM()
 {
     // emit JMP for main
     emit(7, 0, 0, 1);
 
-    BLOCK();
+    CBLOCK();
 
     // emit HALT
     emit(9, 0, 0, 3);
 }
 
-void BLOCK()
+void CBLOCK()
 {
     int numvars = 0;
     if(TOKEN == constsym)
@@ -57,7 +59,7 @@ void BLOCK()
     emit(6, 0, 0, 3 + numvars);
 }
 
-void STATEMENT()
+void CSTATEMENT()
 {
     if(TOKEN == identsym)
     {
@@ -65,7 +67,7 @@ void STATEMENT()
         // save symbol table index of identifier
         int index = lookup(name);
         current += 2;
-        EXPRESSION(0);
+        CEXPRESSION(0);
 
         //emit STO
         emit(4, 0, 0, table[index].addr);
@@ -74,12 +76,12 @@ void STATEMENT()
     if(TOKEN == beginsym)
     {
         current++;
-        STATEMENT();
+        CSTATEMENT();
 
         while(TOKEN == semicolonsym)
         {
             current++;
-            STATEMENT();
+            CSTATEMENT();
         }
 
         current++;
@@ -88,7 +90,7 @@ void STATEMENT()
     if(TOKEN == ifsym)
     {
         current++;
-        CONDITION();
+        CCONDITION();
 
         // store current code index to fix JPC later
         int jpccx = cx;
@@ -96,7 +98,7 @@ void STATEMENT()
         emit(8, 0, 0, 0);
 
         current++;
-        STATEMENT();
+        CSTATEMENT();
 
         // fix JPC by setting M to current index
         code[jpccx].m = cx;
@@ -106,10 +108,10 @@ void STATEMENT()
     {
         current++;
 
-        // store current code index for condition
+        // store current code index for CCONDITION
         int condcx = cx;
 
-        CONDITION();
+        CCONDITION();
 
         current++;
 
@@ -117,7 +119,7 @@ void STATEMENT()
         int jmpcx = cx;
         // emit JPC
         emit(8, 0, 0, 0);
-        STATEMENT();
+        CSTATEMENT();
 
         // emit JMP
         emit(7, 0, 0, condcx);
@@ -142,7 +144,7 @@ void STATEMENT()
         current++;
 
         // TODO: Save the symbol table index
-        // TODO: why are these conditions different?
+        // TODO: why are these CCONDITIONs different?
 
         if(0 /* it's a var */)
         {
@@ -160,64 +162,64 @@ void STATEMENT()
     }
 }
 
-void CONDITION()
+void CCONDITION()
 {
     if(TOKEN == oddsym)
     {
         current++;
-        EXPRESSION(0);
+        CEXPRESSION(0);
         emit (15, 0, 0, 0);
     }
 
     else
     {
-        EXPRESSION(0);
+        CEXPRESSION(0);
         if(TOKEN == eqsym)
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (17, 0, 0, 1);
         }
 
         if(TOKEN == neqsym) // <>?
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (18, 0, 0, 1);
         }
 
         if(TOKEN == lessym)
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (19, 0, 0, 1);
         }
 
         if(TOKEN == leqsym)
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (20, 0, 0, 1);
         }
 
         if(TOKEN == gtrsym)
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (21, 0, 0, 1);
         }
 
         if(TOKEN == geqsym)
         {
             current++;
-            EXPRESSION(1);
+            CEXPRESSION(1);
             emit (22, 0, 0, 1);
         }
     }
     return;
 }
 
-void EXPRESSION(int r)
+void CEXPRESSION(int r)
 {
     if(TOKEN == plussym)
     {
@@ -227,43 +229,43 @@ void EXPRESSION(int r)
     if(TOKEN == minussym)
     {
         current++;
-        TERM(/* regtoendupin */);
-        emit(10, /*regtoendupin*/, 0, 0);
+        CTERM(regtoendupin);
+        emit(10, regtoendupin, 0, 0);
 
         while(TOKEN == plussym || TOKEN == minussym)
         {
             if(TOKEN == plussym)
             {
                 current++;
-                TERM(/*regtoendupin + 1*/);
+                CTERM(regtoendupin + 1);
                 emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
             }
 
             if(TOKEN == minussym)
             {
                 current++;
-                TERM(/*regtoendupin + 1*/);
+                CTERM(regtoendupin + 1);
                 emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
             }
         }
         return;
     }
 
-    TERM(regtoendupin);
+    CTERM(regtoendupin);
 
     while(TOKEN == plussym || TOKEN == minussym)
     {
         if(TOKEN == plussym)
         {
             current++;
-            TERM(/*regtoendupin + 1*/);
+            CTERM(regtoendupin + 1);
             emit(11, regtoendupin, regtoendupin, regtoendupin + 1);
         }
 
         if(TOKEN == minussym)
         {
             current++;
-            TERM(/*regtoendupin + 1*/);
+            CTERM(regtoendupin + 1);
             emit(12, regtoendupin, regtoendupin, regtoendupin + 1);
         }
     }
@@ -271,30 +273,30 @@ void EXPRESSION(int r)
     return;
 }
 
-void TERM(int r)
+void CTERM(int r)
 {
-    FACTOR( /* regtoendupin */ );
+    CFACTOR(regtoendupin);
 
     while(TOKEN == multsym || TOKEN == slashsym)
     {
         if(TOKEN == multsym)
         {
             current++;
-			FACTOR(regtoendupin + 1);
+			CFACTOR(regtoendupin + 1);
 			emit(13, regtoendupin, regtoendupin, regtoendupin + 1);
         }
 
         if(TOKEN == slashsym)
         {
             current++;
-			FACTOR(regtoendupin + 1);
+			CFACTOR(regtoendupin + 1);
 			emit(14, regtoendupin, regtoendupin, regtoendupin + 1);
         }
     }
     return;
 }
 
-void FACTOR(int r)
+void CFACTOR(int r)
 {
     if(TOKEN == identsym)
     {
@@ -338,7 +340,7 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
     list = lexeme_list;
     code = malloc(sizeof(instruction) * 500);
 
-    PROGRAM();
+    CPROGRAM();
 
     return code;
 
@@ -348,7 +350,7 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list)
               when she says token + [something] that means advance current by that amount
               saving the code indexes is a pain you have to understand how the instruction works
               if you don't that's ok just do the other instructions
-              cx is the code index, the index where the current statement is being saved
+              cx is the code index, the index where the current CSTATEMENT is being saved
               check our hw1 vm.c to double check
               uhhhh anything else just ask me
     */
