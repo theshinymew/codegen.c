@@ -1,0 +1,5 @@
+/* no end */
+var x, y;
+begin
+	x := y + 56;
+.

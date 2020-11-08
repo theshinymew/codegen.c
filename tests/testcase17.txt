@@ -1,0 +1,6 @@
+/* x declared twice */
+var x, y;
+var x;
+begin
+	x := y + 56;
+end.
