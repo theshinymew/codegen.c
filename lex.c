@@ -28,7 +28,7 @@ lexeme* lexer(char *inputFile, int flag)
 	lexeme l;
 	char ch;
 	char buffer[32];
-	int i, j, k = 0;
+	int i = 0, j = 0, k = 0;
 	error_type error;
 
 	// Initialize symbol hash table

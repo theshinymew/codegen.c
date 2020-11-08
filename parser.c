@@ -11,7 +11,9 @@ lexeme *list;
 symbol *table;
 
 // Global variables to keep track of current token, symbol table capacity, and variable counter
-int current, symcount, varcount = 0;
+int current = 0;
+int symcount = 0;
+int varcount = 0;
 char *name;
 
 // Symbol table insert function
@@ -42,7 +44,7 @@ int lookup(char* name)
 void PROGRAM()
 {
     BLOCK();
-    
+
     if(list[current].token != periodsym)
     {
         printf("ERROR: period expected\n");
@@ -52,6 +54,7 @@ void PROGRAM()
 
 void BLOCK()
 {
+
     CONST_DECLARATION();
     VAR_DECLARATION();
     STATEMENT();
@@ -84,20 +87,20 @@ void CONST_DECLARATION()
                 printf("ERROR: constant declaration must be followed by '='\n");
                 exit(EXIT_FAILURE);
             }
-            
+
             current++;
             if(list[current].token != numbersym)
             {
                 printf("ERROR: '=' must be followed by a number\n");
                 exit(EXIT_FAILURE);
             }
-            
+
             // Add to symbol table.
             insert(1, name, list[current].value, 0, 0, 0);
             current++;
         }
         while(list[current].token == commasym);
-        
+
         if(list[current].token != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
@@ -109,8 +112,10 @@ void CONST_DECLARATION()
 
 void VAR_DECLARATION()
 {
+
     if(list[current].token == varsym)
     {
+        
         do
         {
             current++;
@@ -132,7 +137,7 @@ void VAR_DECLARATION()
             // Add to symbol table.
             insert(2, name, 0, 0, varcount + 2, 0);
             current++;
-        } 
+        }
         while(list[current].token == commasym);
 
         if(list[current].token != semicolonsym)
@@ -189,14 +194,14 @@ void STATEMENT()
         }
 
         current++;
-        return;        
+        return;
     }
 
     if(list[current].token == ifsym)
     {
         current++;
         CONDITION();
-        
+
         if(list[current].token != thensym)
         {
             printf("ERROR: if condition must be followed by then\n");
@@ -221,7 +226,7 @@ void STATEMENT()
 
         current++;
         STATEMENT();
-        return;        
+        return;
     }
 
     if(list[current].token == readsym)
@@ -282,7 +287,7 @@ void CONDITION()
     {
         EXPRESSION();
 
-        if(list[current].token != eqsym && list[current].token != neqsym && list[current].token != lessym && 
+        if(list[current].token != eqsym && list[current].token != neqsym && list[current].token != lessym &&
            list[current].token != leqsym && list[current].token != gtrsym && list[current].token != geqsym)
         {
             printf("ERROR: relational operator expected\n");
@@ -307,7 +312,7 @@ void EXPRESSION()
         current++;
         TERM();
     }
-        
+
 }
 
 void TERM()
@@ -356,14 +361,14 @@ void FACTOR()
         printf("ERROR: the preceding factor cannot begin with this symbol\n");
         exit(EXIT_FAILURE);
     }
-    
+
 }
 
 symbol* parser(lexeme *lexeme_list)
 {
     list = lexeme_list;
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
-    
+
     PROGRAM();
     return table;
 }
