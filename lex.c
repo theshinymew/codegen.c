@@ -337,8 +337,20 @@ lexeme* lexer(char *inputFile, int flag)
 		}
 	}
 
+	// Print lexeme table and lexeme list if -l
 	if(flag)
 	{
+		printf("Lexeme Table:\n%-32s token type\n", "lexeme");
+		for(i = 0; i < j; i++)
+		{
+			l = lexeme_table[i];
+
+			if(l.token == numbersym)
+				printf("%-32d %d\n", l.value, l.token);
+			else
+				printf("%-32s %d\n", l.name, l.token);
+		}
+			
 		printf("\nLexeme List:\n");
 		for(i = 0; i < j; i++)
 		{
