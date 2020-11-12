@@ -1,0 +1,6 @@
+/* num too long */
+var x, y;
+begin
+	y := 1234567;
+	x := y + 56;
+end.

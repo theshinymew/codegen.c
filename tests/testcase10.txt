@@ -1,0 +1,5 @@
+/* no identifier after var */
+var;
+begin
+	x := y + 56;
+end.

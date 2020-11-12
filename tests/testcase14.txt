@@ -1,0 +1,5 @@
+/* := without preceding ident */
+var x, y;
+begin
+	 := y + 56;
+end.
