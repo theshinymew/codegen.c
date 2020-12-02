@@ -43,7 +43,10 @@ int lookup(char* name)
 
 void PROGRAM()
 {
-    BLOCK();
+    insert(3, "main", 0, 0, 0, 0);
+    current++;
+
+    BLOCK(0);
 
     if(list[current].token != periodsym)
     {
@@ -52,16 +55,21 @@ void PROGRAM()
     }
 }
 
-void BLOCK()
+// TODO
+void BLOCK(int lexlevel)
 {
-
-    CONST_DECLARATION();
-    VAR_DECLARATION();
-    STATEMENT();
+    int numSymbols = 0;
+    numSymbols += CONST_DECLARATION(lexlevel);
+    numSymbols += VAR_DECLARATION(lexlevel);
+    numSymbols += PROCEDURE_DECLARATION(lexlevel + 1);
+    STATEMENT(lexlevel);
+    // mark the last numSymbols number of unmarked symbols
 }
 
-void CONST_DECLARATION()
+// TODO
+int CONST_DECLARATION(int lexlevel)
 {
+    int numConsts = 0;
     if(list[current].token == constsym)
     {
         do
@@ -75,7 +83,7 @@ void CONST_DECLARATION()
 
             // save ident name
             name = list[current].name;
-            if(lookup(name) != -1)
+            if(lookup(name) != -1 /* && at the same lexlevel */)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -108,14 +116,15 @@ void CONST_DECLARATION()
         }
         current++;
     }
+    return numConsts;
 }
 
-void VAR_DECLARATION()
+// TODO
+int VAR_DECLARATION(int lexlevel)
 {
-
+    int numVars = 0;
     if(list[current].token == varsym)
     {
-        
         do
         {
             current++;
@@ -128,7 +137,7 @@ void VAR_DECLARATION()
 
             // save ident name
             name = list[current].name;
-            if(lookup(name) != -1)
+            if(lookup(name) != -1 /* && at the same lexlevel */)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -147,13 +156,66 @@ void VAR_DECLARATION()
         }
         current++;
     }
+    return numVars;
 }
 
-void STATEMENT()
+// TODO
+int PROCEDURE_DECLARATION(int lexlevel)
+{
+    int numProcedures = 0;
+    if(list[current].token == procsym)
+    {
+        do
+        {
+            current++;
+            if(list[current].token != identsym)
+            {
+                printf("ERROR: const, var, procedure must be followed by identifier\n");
+                exit(EXIT_FAILURE);
+            }
+
+            name = list[current].name;
+            // search the symbol table working backwards
+            // find the latest unmarked var with the desired name
+            if(lookup(name) == -1)
+            {
+                printf("ERROR: undeclared identifier\n");
+                exit(EXIT_FAILURE);
+            }
+
+            insert(3, name, 0, lexlevel, 0, 0);
+            current++;
+
+            if(list[current].token != semicolonsym)
+            {
+                printf("ERROR: declaration must end with ';'\n");
+                exit(EXIT_FAILURE);
+            })
+
+            current++:
+            BLOCK(lexlevel);
+
+            if(list[current].token != semicolonsym)
+            {
+                printf("ERROR: declaration must end with ';'\n");
+                exit(EXIT_FAILURE);
+            })
+            current++;
+            numProcedures++;
+        } while(list[current].token != procsym);
+    }
+    return numProcedures;
+}
+
+// TODO
+void STATEMENT(int lexlevel)
 {
     if(list[current].token == identsym)
     {
         name = list[current].name;
+
+        // search the symbol table working backwards
+        // find the latest unmarked var with the desired name
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -174,7 +236,7 @@ void STATEMENT()
         }
 
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
         return;
     }
 
@@ -183,7 +245,7 @@ void STATEMENT()
         do
         {
             current++;
-            STATEMENT();
+            STATEMENT(lexlevel);
         }
         while(list[current].token == semicolonsym);
 
@@ -200,7 +262,7 @@ void STATEMENT()
     if(list[current].token == ifsym)
     {
         current++;
-        CONDITION();
+        CONDITION(lexlevel);
 
         if(list[current].token != thensym)
         {
@@ -209,14 +271,14 @@ void STATEMENT()
         }
 
         current++;
-        STATEMENT();
+        STATEMENT(lexlevel);
         return;
     }
 
     if(list[current].token == whilesym)
     {
         current++;
-        CONDITION();
+        CONDITION(lexlevel);
 
         if(list[current].token != dosym)
         {
@@ -225,7 +287,7 @@ void STATEMENT()
         }
 
         current++;
-        STATEMENT();
+        STATEMENT(lexlevel);
         return;
     }
 
@@ -239,6 +301,8 @@ void STATEMENT()
         }
 
         name = list[current].name;
+        // search the symbol table working backwards
+        // find the latest unmarked var with the desired name
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -265,6 +329,8 @@ void STATEMENT()
         }
 
         name = list[current].name;
+        // search the symbol table working backwards
+        // find the latest unmarked var with the desired name
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -276,16 +342,16 @@ void STATEMENT()
     }
 }
 
-void CONDITION()
+void CONDITION(int lexlevel)
 {
     if(list[current].token == oddsym)
     {
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
     }
     else
     {
-        EXPRESSION();
+        EXPRESSION(lexlevel);
 
         if(list[current].token != eqsym && list[current].token != neqsym && list[current].token != lessym &&
            list[current].token != leqsym && list[current].token != gtrsym && list[current].token != geqsym)
@@ -295,42 +361,45 @@ void CONDITION()
         }
 
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
     }
 }
 
-void EXPRESSION()
+void EXPRESSION(int lexlevel)
 {
     if(list[current].token == plussym || list[current].token == minussym)
     {
         current++;
     }
-    TERM();
+    TERM(lexlevel);
 
     while(list[current].token == plussym || list[current].token == minussym)
     {
         current++;
-        TERM();
+        TERM(lexlevel);
     }
 
 }
 
-void TERM()
+void TERM(int lexlevel)
 {
-    FACTOR();
+    FACTOR(lexlevel);
 
     while(list[current].token == multsym || list[current].token == slashsym)
     {
         current++;
-        FACTOR();
+        FACTOR(lexlevel);
     }
 }
 
-void FACTOR()
+// TODO
+void FACTOR(int lexlevel)
 {
     if(list[current].token == identsym)
     {
         name = list[current].name;
+        // search the symbol table working backwards
+        // find the latest unmarked var with the desired name
         if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -346,7 +415,7 @@ void FACTOR()
     else if(list[current].token == lparentsym)
     {
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
 
         if(list[current].token != rparentsym)
         {
