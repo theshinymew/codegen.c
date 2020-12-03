@@ -31,11 +31,13 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
 
 // Symbol table lookup function
 // Returns identifier index in symbol table, or -1 if it doesn't exist
-int lookup(char* name)
+int lookup(int current, int lexlevel)
 {
+    name = list[current].name;
+
     for(int i = 0; i < symcount; i++)
     {
-        if(!strcmp(name, table[i].name))
+        if((!strcmp(name, table[i].name)) && table[i].level == lexlevel && table[i].mark == 0)
             return i;
     }
     return -1;
@@ -66,7 +68,6 @@ void BLOCK(int lexlevel)
     // mark the last numSymbols number of unmarked symbols
 }
 
-// TODO
 int CONST_DECLARATION(int lexlevel)
 {
     int numConsts = 0;
@@ -83,7 +84,7 @@ int CONST_DECLARATION(int lexlevel)
 
             // save ident name
             name = list[current].name;
-            if(lookup(name) != -1 /* && at the same lexlevel */)
+            if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -119,7 +120,6 @@ int CONST_DECLARATION(int lexlevel)
     return numConsts;
 }
 
-// TODO
 int VAR_DECLARATION(int lexlevel)
 {
     int numVars = 0;
@@ -137,7 +137,7 @@ int VAR_DECLARATION(int lexlevel)
 
             // save ident name
             name = list[current].name;
-            if(lookup(name) != -1 /* && at the same lexlevel */)
+            if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -159,7 +159,6 @@ int VAR_DECLARATION(int lexlevel)
     return numVars;
 }
 
-// TODO
 int PROCEDURE_DECLARATION(int lexlevel)
 {
     int numProcedures = 0;
@@ -175,9 +174,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
             }
 
             name = list[current].name;
-            // search the symbol table working backwards
-            // find the latest unmarked var with the desired name
-            if(lookup(name) == -1)
+            if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: undeclared identifier\n");
                 exit(EXIT_FAILURE);
@@ -190,16 +187,16 @@ int PROCEDURE_DECLARATION(int lexlevel)
             {
                 printf("ERROR: declaration must end with ';'\n");
                 exit(EXIT_FAILURE);
-            })
+            }
 
-            current++:
+            current++;
             BLOCK(lexlevel);
 
             if(list[current].token != semicolonsym)
             {
                 printf("ERROR: declaration must end with ';'\n");
                 exit(EXIT_FAILURE);
-            })
+            }
             current++;
             numProcedures++;
         } while(list[current].token != procsym);
@@ -207,22 +204,19 @@ int PROCEDURE_DECLARATION(int lexlevel)
     return numProcedures;
 }
 
-// TODO
 void STATEMENT(int lexlevel)
 {
     if(list[current].token == identsym)
     {
         name = list[current].name;
 
-        // search the symbol table working backwards
-        // find the latest unmarked var with the desired name
-        if(lookup(name) == -1)
+        if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        if(table[lookup(name)].kind != 2)
+        if(table[lookup(current, lexlevel)].kind != 2)
         {
             printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
@@ -301,15 +295,13 @@ void STATEMENT(int lexlevel)
         }
 
         name = list[current].name;
-        // search the symbol table working backwards
-        // find the latest unmarked var with the desired name
-        if(lookup(name) == -1)
+        if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        if(table[lookup(name)].kind != 2)
+        if(table[lookup(current, lexlevel)].kind != 2)
         {
             printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
@@ -329,9 +321,7 @@ void STATEMENT(int lexlevel)
         }
 
         name = list[current].name;
-        // search the symbol table working backwards
-        // find the latest unmarked var with the desired name
-        if(lookup(name) == -1)
+        if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -400,7 +390,7 @@ void FACTOR(int lexlevel)
         name = list[current].name;
         // search the symbol table working backwards
         // find the latest unmarked var with the desired name
-        if(lookup(name) == -1)
+        if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);

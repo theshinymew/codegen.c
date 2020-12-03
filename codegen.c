@@ -19,16 +19,17 @@ char *name;
 
 void CPROGRAM()
 {
+    int lexlevel = 0;
     // emit JMP for main
     emit(JMP, 0, 0, 1);
 
-    CBLOCK();
+    CBLOCK(lexlevel);
 
     // emit HALT
     emit(SYS, 0, 0, 3);
 }
 
-void CBLOCK()
+void CBLOCK(int lexlevel)
 {
     int numvars = 0;
     if(list[current].token == constsym)
@@ -55,18 +56,18 @@ void CBLOCK()
 
     // emit INC
     emit(INC, 0, 0, 3 + numvars);
-    CSTATEMENT();
+    CSTATEMENT(lexlevel);
 }
 
-void CSTATEMENT()
+void CSTATEMENT(int lexlevel)
 {
     if(list[current].token == identsym)
     {
         name = list[current].name;
         // save symbol table current of identifier
-        int temp = lookup(name);
+        int temp = lookup(current, lexlevel);
         current += 2;
-        CEXPRESSION(0);
+        CEXPRESSION(0, lexlevel);
 
         //emit STO
         emit(STO, 0, 0, table[temp].addr);
@@ -75,12 +76,12 @@ void CSTATEMENT()
     if(list[current].token == beginsym)
     {
         current++;
-        CSTATEMENT();
+        CSTATEMENT(lexlevel);
 
         while(list[current].token == semicolonsym)
         {
             current++;
-            CSTATEMENT();
+            CSTATEMENT(lexlevel);
         }
 
         current++;
@@ -89,7 +90,7 @@ void CSTATEMENT()
     if(list[current].token == ifsym)
     {
         current++;
-        CCONDITION();
+        CCONDITION(lexlevel);
 
         // store current code current to fix JPC later
         int jpccx = cx;
@@ -97,7 +98,7 @@ void CSTATEMENT()
         emit(JPC, 0, 0, 0);
 
         current++;
-        CSTATEMENT();
+        CSTATEMENT(lexlevel);
 
         // fix JPC by setting M to current current
         code[jpccx].m = cx;
@@ -110,7 +111,7 @@ void CSTATEMENT()
         // store current code index current for condition
         int condcx = cx;
 
-        CCONDITION();
+        CCONDITION(lexlevel);
 
         current++;
 
@@ -118,7 +119,7 @@ void CSTATEMENT()
         int jmpcx = cx;
         // emit JPC
         emit(JPC, 0, 0, 0);
-        CSTATEMENT();
+        CSTATEMENT(lexlevel);
 
         // emit JMP
         emit(JMP, 0, 0, condcx);
@@ -133,7 +134,7 @@ void CSTATEMENT()
 
         name = list[current].name;
         // save symbol table current of identifier
-        int temp = lookup(name);
+        int temp = lookup(current, lexlevel);
 
         current++;
 
@@ -149,8 +150,8 @@ void CSTATEMENT()
 
         name = list[current].name;
         // save symbol table current of identifier
-        int temp = lookup(name);
-        
+        int temp = lookup(current, lexlevel);
+
         // if it's a var
         if(table[temp].kind == 2)
         {
@@ -171,59 +172,59 @@ void CSTATEMENT()
     }
 }
 
-void CCONDITION()
+void CCONDITION(int lexlevel)
 {
     if(list[current].token == oddsym)
     {
         current++;
-        CEXPRESSION(0);
+        CEXPRESSION(0, lexlevel);
         emit(ODD, 0, 0, 0);
     }
     else
     {
-        CEXPRESSION(0);
+        CEXPRESSION(0, lexlevel);
         if(list[current].token == eqsym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(EQL, 0, 0, 1);
         }
         if(list[current].token == neqsym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(NEQ, 0, 0, 1);
         }
         if(list[current].token == lessym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(LSS, 0, 0, 1);
         }
         if(list[current].token == leqsym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(LEQ, 0, 0, 1);
         }
 
         if(list[current].token == gtrsym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(GTR, 0, 0, 1);
         }
 
         if(list[current].token == geqsym)
         {
             current++;
-            CEXPRESSION(1);
+            CEXPRESSION(1, lexlevel);
             emit(GEQ, 0, 0, 1);
         }
     }
 }
 
-void CEXPRESSION(int r)
+void CEXPRESSION(int r, int lexlevel)
 {
     if(list[current].token == plussym)
     {
@@ -233,7 +234,7 @@ void CEXPRESSION(int r)
     if(list[current].token == minussym)
     {
         current++;
-        CTERM(r);
+        CTERM(r, lexlevel);
         emit(NEG, r, 0, 0);
 
         while(list[current].token == plussym || list[current].token == minussym)
@@ -241,71 +242,71 @@ void CEXPRESSION(int r)
             if(list[current].token == plussym)
             {
                 current++;
-                CTERM(r + 1);
+                CTERM(r + 1, lexlevel);
                 emit(ADD, r, r, r + 1);
             }
 
             if(list[current].token == minussym)
             {
                 current++;
-                CTERM(r + 1);
+                CTERM(r + 1, lexlevel);
                 emit(SUB, r, r, r + 1);
             }
         }
         return;
     }
 
-    CTERM(r);
+    CTERM(r, lexlevel);
 
     while(list[current].token == plussym || list[current].token == minussym)
     {
         if(list[current].token == plussym)
         {
             current++;
-            CTERM(r + 1);
+            CTERM(r + 1, lexlevel);
             emit(ADD, r, r, r + 1);
         }
 
         if(list[current].token == minussym)
         {
             current++;
-            CTERM(r + 1);
+            CTERM(r + 1, lexlevel);
             emit(SUB, r, r, r + 1);
         }
     }
 }
 
-void CTERM(int r)
+void CTERM(int r, int lexlevel)
 {
-    CFACTOR(r);
+    CFACTOR(r,lexlevel);
 
     while(list[current].token == multsym || list[current].token == slashsym)
     {
         if(list[current].token == multsym)
         {
             current++;
-			CFACTOR(r + 1);
+			CFACTOR(r + 1, lexlevel);
 			emit(MUL, r, r, r + 1);
         }
 
         if(list[current].token == slashsym)
         {
             current++;
-			CFACTOR(r + 1);
+			CFACTOR(r + 1, lexlevel);
 			emit(DIV, r, r, r + 1);
         }
     }
     return;
 }
 
-void CFACTOR(int r)
+void CFACTOR(int r, int lexlevel)
 {
     if(list[current].token == identsym)
     {
         name = list[current].name;
         // save symbol table current of identifier
-        int temp = lookup(name);
-        
+        int temp = lookup(current, lexlevel);
+
         if(table[temp].kind == 1)
         {
             emit(LIT, r, 0, table[temp].val);
@@ -324,7 +325,7 @@ void CFACTOR(int r)
     else
     {
         current++;
-		CEXPRESSION(r);
+		CEXPRESSION(r, lexlevel);
 		current++;
     }
 }
