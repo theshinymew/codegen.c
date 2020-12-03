@@ -6,6 +6,16 @@
 
 #include "lex.h"
 
+// Macro for checking kind in the symbol table
+#define CONST 1;
+#define VAR 2;
+#define PROC 3;
+
+// Macro for tokens
+#define TOKEN list[current].token;
+#define TNAME list[current].name;
+
+
 typedef struct symbol
 {
 	int kind;

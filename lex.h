@@ -9,9 +9,8 @@
 #define MAX_TABLE_SIZE 500
 
 // Reserved words declaration
-// hacky fix to avoid tokenizing keywords that haven't been implemented yet
-static char *reserved[] = { "odd", "begin", "end", "if", "then", "while", "do", "callaaaaaaaaaaaaaa",
-					 		"const", "var", "procedureaaaaaaaaaaaaaa", "write", "read", "elseaaaaaaaaaaaaa" };
+static char *reserved[] = { "odd", "begin", "end", "if", "then", "while", "do", "call",
+					 		"const", "var", "procedure", "write", "read", "else" };
 
 // Token declaration
 typedef enum

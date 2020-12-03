@@ -33,7 +33,7 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
 // Returns identifier index in symbol table, or -1 if it doesn't exist
 int lookup(int current, int lexlevel)
 {
-    name = list[current].name;
+    name = TNAME;
 
     for(int i = 0; i < symcount; i++)
     {
@@ -50,7 +50,7 @@ void PROGRAM()
 
     BLOCK(0);
 
-    if(list[current].token != periodsym)
+    if(TOKEN != periodsym)
     {
         printf("ERROR: period expected\n");
         exit(EXIT_FAILURE);
@@ -71,19 +71,19 @@ void BLOCK(int lexlevel)
 int CONST_DECLARATION(int lexlevel)
 {
     int numConsts = 0;
-    if(list[current].token == constsym)
+    if(TOKEN == constsym)
     {
         do
         {
             current++;
-            if(list[current].token != identsym)
+            if(TOKEN != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(EXIT_FAILURE);
             }
 
             // save ident name
-            name = list[current].name;
+            name = TNAME;
             if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
@@ -91,14 +91,14 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             current++;
-            if(list[current].token != eqsym)
+            if(TOKEN != eqsym)
             {
                 printf("ERROR: constant declaration must be followed by '='\n");
                 exit(EXIT_FAILURE);
             }
 
             current++;
-            if(list[current].token != numbersym)
+            if(TOKEN != numbersym)
             {
                 printf("ERROR: '=' must be followed by a number\n");
                 exit(EXIT_FAILURE);
@@ -108,9 +108,9 @@ int CONST_DECLARATION(int lexlevel)
             insert(1, name, list[current].value, 0, 0, 0);
             current++;
         }
-        while(list[current].token == commasym);
+        while(TOKEN == commasym);
 
-        if(list[current].token != semicolonsym)
+        if(TOKEN != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
             exit(EXIT_FAILURE);
@@ -123,20 +123,20 @@ int CONST_DECLARATION(int lexlevel)
 int VAR_DECLARATION(int lexlevel)
 {
     int numVars = 0;
-    if(list[current].token == varsym)
+    if(TOKEN == varsym)
     {
         do
         {
             current++;
             varcount++;
-            if(list[current].token != identsym)
+            if(TOKEN != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(EXIT_FAILURE);
             }
 
             // save ident name
-            name = list[current].name;
+            name = TNAME;
             if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: identifier has already been declared\n");
@@ -147,9 +147,9 @@ int VAR_DECLARATION(int lexlevel)
             insert(2, name, 0, 0, varcount + 2, 0);
             current++;
         }
-        while(list[current].token == commasym);
+        while(TOKEN == commasym);
 
-        if(list[current].token != semicolonsym)
+        if(TOKEN != semicolonsym)
         {
             printf("ERROR: declaration must end with ';'\n");
             exit(EXIT_FAILURE);
@@ -162,18 +162,18 @@ int VAR_DECLARATION(int lexlevel)
 int PROCEDURE_DECLARATION(int lexlevel)
 {
     int numProcedures = 0;
-    if(list[current].token == procsym)
+    if(TOKEN == procsym)
     {
         do
         {
             current++;
-            if(list[current].token != identsym)
+            if(TOKEN != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(EXIT_FAILURE);
             }
 
-            name = list[current].name;
+            name = TNAME;
             if(lookup(current, lexlevel) != -1)
             {
                 printf("ERROR: undeclared identifier\n");
@@ -183,7 +183,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
             insert(3, name, 0, lexlevel, 0, 0);
             current++;
 
-            if(list[current].token != semicolonsym)
+            if(TOKEN != semicolonsym)
             {
                 printf("ERROR: declaration must end with ';'\n");
                 exit(EXIT_FAILURE);
@@ -192,23 +192,23 @@ int PROCEDURE_DECLARATION(int lexlevel)
             current++;
             BLOCK(lexlevel);
 
-            if(list[current].token != semicolonsym)
+            if(TOKEN != semicolonsym)
             {
                 printf("ERROR: declaration must end with ';'\n");
                 exit(EXIT_FAILURE);
             }
             current++;
             numProcedures++;
-        } while(list[current].token != procsym);
+        } while(TOKEN != procsym);
     }
     return numProcedures;
 }
 
 void STATEMENT(int lexlevel)
 {
-    if(list[current].token == identsym)
+    if(TOKEN == identsym)
     {
-        name = list[current].name;
+        name = TNAME;
 
         if(lookup(current, lexlevel) == -1)
         {
@@ -223,7 +223,7 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        if(list[current].token != becomessym)
+        if(TOKEN != becomessym)
         {
             printf("ERROR: ':=' expected\n");
             exit(EXIT_FAILURE);
@@ -234,16 +234,16 @@ void STATEMENT(int lexlevel)
         return;
     }
 
-    if(list[current].token == beginsym)
+    if(TOKEN == beginsym)
     {
         do
         {
             current++;
             STATEMENT(lexlevel);
         }
-        while(list[current].token == semicolonsym);
+        while(TOKEN == semicolonsym);
 
-        if(list[current].token != endsym)
+        if(TOKEN != endsym)
         {
             printf("ERROR: begin must be closed with end\n");
             exit(EXIT_FAILURE);
@@ -253,12 +253,12 @@ void STATEMENT(int lexlevel)
         return;
     }
 
-    if(list[current].token == ifsym)
+    if(TOKEN == ifsym)
     {
         current++;
         CONDITION(lexlevel);
 
-        if(list[current].token != thensym)
+        if(TOKEN != thensym)
         {
             printf("ERROR: if condition must be followed by then\n");
             exit(EXIT_FAILURE);
@@ -269,12 +269,12 @@ void STATEMENT(int lexlevel)
         return;
     }
 
-    if(list[current].token == whilesym)
+    if(TOKEN == whilesym)
     {
         current++;
         CONDITION(lexlevel);
 
-        if(list[current].token != dosym)
+        if(TOKEN != dosym)
         {
             printf("ERROR: while condition must be followed by do\n");
             exit(EXIT_FAILURE);
@@ -285,16 +285,16 @@ void STATEMENT(int lexlevel)
         return;
     }
 
-    if(list[current].token == readsym)
+    if(TOKEN == readsym)
     {
         current++;
-        if(list[current].token != identsym)
+        if(TOKEN != identsym)
         {
             printf("ERROR: read statement must be followed by identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        name = list[current].name;
+        name = TNAME;
         if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -311,16 +311,16 @@ void STATEMENT(int lexlevel)
         return;
     }
 
-    if(list[current].token == writesym)
+    if(TOKEN == writesym)
     {
         current++;
-        if(list[current].token != identsym)
+        if(TOKEN != identsym)
         {
             printf("ERROR: write statement must be followed by identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        name = list[current].name;
+        name = TNAME;
         if(lookup(current, lexlevel) == -1)
         {
             printf("ERROR: undeclared identifier\n");
@@ -334,7 +334,7 @@ void STATEMENT(int lexlevel)
 
 void CONDITION(int lexlevel)
 {
-    if(list[current].token == oddsym)
+    if(TOKEN == oddsym)
     {
         current++;
         EXPRESSION(lexlevel);
@@ -343,8 +343,8 @@ void CONDITION(int lexlevel)
     {
         EXPRESSION(lexlevel);
 
-        if(list[current].token != eqsym && list[current].token != neqsym && list[current].token != lessym &&
-           list[current].token != leqsym && list[current].token != gtrsym && list[current].token != geqsym)
+        if(TOKEN != eqsym && TOKEN != neqsym && TOKEN != lessym &&
+           TOKEN != leqsym && TOKEN != gtrsym && TOKEN != geqsym)
         {
             printf("ERROR: relational operator expected\n");
             exit(EXIT_FAILURE);
@@ -357,13 +357,13 @@ void CONDITION(int lexlevel)
 
 void EXPRESSION(int lexlevel)
 {
-    if(list[current].token == plussym || list[current].token == minussym)
+    if(TOKEN == plussym || TOKEN == minussym)
     {
         current++;
     }
     TERM(lexlevel);
 
-    while(list[current].token == plussym || list[current].token == minussym)
+    while(TOKEN == plussym || TOKEN == minussym)
     {
         current++;
         TERM(lexlevel);
@@ -375,7 +375,7 @@ void TERM(int lexlevel)
 {
     FACTOR(lexlevel);
 
-    while(list[current].token == multsym || list[current].token == slashsym)
+    while(TOKEN == multsym || TOKEN == slashsym)
     {
         current++;
         FACTOR(lexlevel);
@@ -385,9 +385,9 @@ void TERM(int lexlevel)
 // TODO
 void FACTOR(int lexlevel)
 {
-    if(list[current].token == identsym)
+    if(TOKEN == identsym)
     {
-        name = list[current].name;
+        name = TNAME;
         // search the symbol table working backwards
         // find the latest unmarked var with the desired name
         if(lookup(current, lexlevel) == -1)
@@ -398,16 +398,16 @@ void FACTOR(int lexlevel)
 
         current++;
     }
-    else if(list[current].token == numbersym)
+    else if(TOKEN == numbersym)
     {
         current++;
     }
-    else if(list[current].token == lparentsym)
+    else if(TOKEN == lparentsym)
     {
         current++;
         EXPRESSION(lexlevel);
 
-        if(list[current].token != rparentsym)
+        if(TOKEN != rparentsym)
         {
             printf("ERROR: right parenthesis missing\n");
             exit(EXIT_FAILURE);
