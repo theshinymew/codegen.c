@@ -37,7 +37,7 @@ int lookup(int current, int lexlevel)
 
     for(int i = 0; i < symcount; i++)
     {
-        if((!strcmp(name, table[i].name)) && table[i].level == lexlevel && table[i].mark == 0)
+        if((!strcmp(name, table[i].name)) && table[i].level <= lexlevel && table[i].mark == 0)
             return i;
     }
     return -1;
@@ -63,7 +63,7 @@ void BLOCK(int lexlevel)
     int numSymbols = 0;
     numSymbols += CONST_DECLARATION(lexlevel);
     numSymbols += VAR_DECLARATION(lexlevel);
-    numSymbols += PROCEDURE_DECLARATION(lexlevel + 1);
+    numSymbols += PROCEDURE_DECLARATION(lexlevel);
     STATEMENT(lexlevel);
 
     // mark the last numSymbols number of unmarked symbols
@@ -95,7 +95,13 @@ int CONST_DECLARATION(int lexlevel)
 
             // save ident name
             name = TNAME;
-            if(lookup(current, lexlevel) != -1)
+            int temp = lookup(current, lexlevel);
+            if(temp != -1)
+            {
+                printf("ERROR: identifier has already been declared\n");
+                exit(EXIT_FAILURE);
+            }
+            else if (table[temp].level == lexlevel)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -149,7 +155,13 @@ int VAR_DECLARATION(int lexlevel)
 
             // save ident name
             name = TNAME;
-            if(lookup(current, lexlevel) != -1)
+            int temp = lookup(current, lexlevel);
+            if(temp != -1)
+            {
+                printf("ERROR: identifier has already been declared\n");
+                exit(EXIT_FAILURE);
+            }
+            else if (table[temp].level == lexlevel)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -187,9 +199,15 @@ int PROCEDURE_DECLARATION(int lexlevel)
             }
 
             name = TNAME;
-            if(lookup(current, lexlevel) != -1)
+            int temp = lookup(current, lexlevel);
+            if(temp != -1)
             {
-                printf("ERROR: undeclared identifier\n");
+                printf("ERROR: identifier has already been declared\n");
+                exit(EXIT_FAILURE);
+            }
+            else if (table[temp].level == lexlevel)
+            {
+                printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -204,7 +222,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
             }
 
             current++;
-            BLOCK(lexlevel);
+            BLOCK(lexlevel + 1);
 
             if(TOKEN != semicolonsym)
             {
@@ -244,6 +262,22 @@ void STATEMENT(int lexlevel)
 
         current++;
         EXPRESSION(lexlevel);
+        return;
+    }
+
+    if(TOKEN == callsym)
+    {
+        current++;
+        name = TNAME;
+
+        if(lookup(current, lexlevel) == -1)
+        {
+            printf("ERROR: undeclared identifier\n");
+            exit(EXIT_FAILURE);
+        }
+
+        current++;
+
         return;
     }
 
