@@ -26,7 +26,7 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
     table[symcount].addr = address;
     table[symcount].mark = mark;
 
-    printf("symcount: %d, table[symcount].name: \"%s\"\n", symcount, table[symcount].name);
+    printf("symcount: %d, \"%s\" inserted into table at table[%d]\n", symcount, table[symcount].name, symcount);
     symcount++;
 }
 
@@ -117,21 +117,38 @@ void PROGRAM()
 
 void BLOCK(int lexlevel)
 {
+    printf("Entering BLOCK(%d)\n", lexlevel);
     int numSymbols = 0;
     numSymbols += CONST_DECLARATION(lexlevel);
     numSymbols += VAR_DECLARATION(lexlevel);
     numSymbols += PROCEDURE_DECLARATION(lexlevel);
+
     STATEMENT(lexlevel);
 
     // mark the last numsymbols number of unmarked symbols
+
+    int j = 0;
+    for(int i = 0; j < numSymbols; i++)
+    {
+        if(!table[(symcount - 1) - i].mark)
+        {
+            table[(symcount - 1) - i].mark = 1;
+            printf("table[%d] marked. name: \"%s\"\n", (symcount - 1) - i, table[(symcount - 1) - i].name);
+            j++;
+        }
+    }
+
+    /*
     while(numSymbols > 0)
     {
         if(!table[numSymbols].mark)
         {
             table[numSymbols].mark = 1;
+            printf("table[%d] marked. name: \"%s\"\n", numSymbols, table[numSymbols].name);
         }
         numSymbols--;
     }
+    */
 }
 
 int CONST_DECLARATION(int lexlevel)
@@ -264,6 +281,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
 
             current++;
             BLOCK(lexlevel + 1);
+            printf("Returned from BLOCK(%d)\n", lexlevel + 1);
 
             if(TOKEN != semicolonsym)
             {
@@ -285,12 +303,13 @@ void STATEMENT(int lexlevel)
         if(lookup_alt(current, lexlevel, 2) == -1)
         {
             printf("ERROR: undeclared identifier\n");
+            printf("name: %s\n", TNAME);
             exit(EXIT_FAILURE);
         }
 
         if(table[lookup_alt(current, lexlevel, 2)].kind != 2)
         {
-            printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
+            //printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
             printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
         }
@@ -468,19 +487,12 @@ void FACTOR(int lexlevel)
     {
         name = TNAME;
 
-        printf("%s\n", name);
         if(lookup_alt(current, lexlevel, 1) == -1)
         {
-            printf("OOPS: %d\n", lookup_alt(current, lexlevel, 1));
-            printf("%s is marked.\n", TNAME);
-            printf("It should see the identifier in table[1].\ntable[1]'s info is:\n");
-
-            printf("\nkind: %d\nname: %s\nval: %d\nlevel: %d\naddress: %d\nmark: %d\n",
+            printf("ERROR: undeclared identifier\n");
+            printf("kind: %d\nname: %s\nval: %d\nlevel: %d\naddress: %d\nmark: %d\n",
                     table[1].kind, table[1].name, table[1].val,
                     table[1].level, table[1].addr, table[1].mark);
-
-            printf("the f should NOT be marked. This means that the way we're currently marking is wrong.\n");
-            printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
@@ -517,5 +529,6 @@ symbol* parser(lexeme *lexeme_list)
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
 
     PROGRAM();
+    // exit(EXIT_FAILURE);
     return table;
 }
