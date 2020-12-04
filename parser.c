@@ -293,7 +293,7 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        return
+        return;
     }
 
     if(TOKEN == beginsym)
@@ -327,14 +327,18 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        STATEMENT();
+        if(TOKEN == thensym)
+        {
+            current++;
+            STATEMENT(lexlevel);
+        }
         return;
     }
 
     if(TOKEN == whilesym)
     {
         current++;
-        CONDITION();
+        CONDITION(lexlevel);
 
         if(TOKEN != dosym)
         {
@@ -343,7 +347,7 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        STATEMENT();
+        STATEMENT(lexlevel);
         return;
     }
 
@@ -356,19 +360,11 @@ void STATEMENT(int lexlevel)
             exit(EXIT_FAILURE);
         }
 
-        name = list[current].name;
-        if(lookup(name) == -1)
+        if(backwardslookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
-
-        if(table[lookup(name)].kind != 2)
-        {
-            printf("ERROR: assignment to constant is not allowed\n");
-            exit(EXIT_FAILURE);
-        }
-
         current++;
         return;
     }
@@ -376,20 +372,7 @@ void STATEMENT(int lexlevel)
     if(TOKEN == writesym)
     {
         current++;
-        if(TOKEN != identsym)
-        {
-            printf("ERROR: write statement must be followed by identifier\n");
-            exit(EXIT_FAILURE);
-        }
-
-        name = list[current].name;
-        if(lookup(name) == -1)
-        {
-            printf("ERROR: undeclared identifier\n");
-            exit(EXIT_FAILURE);
-        }
-
-        current++;
+        EXPRESSION(lexlevel);
         return;
     }
 }
@@ -399,11 +382,11 @@ void CONDITION(int lexlevel)
     if(TOKEN == oddsym)
     {
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
     }
     else
     {
-        EXPRESSION();
+        EXPRESSION(lexlevel);
 
         if(TOKEN != eqsym && TOKEN != neqsym && TOKEN != lessym &&
            TOKEN != leqsym && TOKEN != gtrsym && TOKEN != geqsym)
@@ -413,7 +396,7 @@ void CONDITION(int lexlevel)
         }
 
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
     }
 }
 
@@ -423,24 +406,24 @@ void EXPRESSION(int lexlevel)
     {
         current++;
     }
-    TERM();
+    TERM(lexlevel);
 
     while(TOKEN == plussym || TOKEN == minussym)
     {
         current++;
-        TERM();
+        TERM(lexlevel);
     }
 
 }
 
 void TERM(int lexlevel)
 {
-    FACTOR();
+    FACTOR(lexlevel);
 
     while(TOKEN == multsym || TOKEN == slashsym)
     {
         current++;
-        FACTOR();
+        FACTOR(lexlevel);
     }
 }
 
@@ -448,8 +431,7 @@ void FACTOR(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        name = list[current].name;
-        if(lookup(name) == -1)
+        if(backwardslookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -464,7 +446,7 @@ void FACTOR(int lexlevel)
     else if(TOKEN == lparentsym)
     {
         current++;
-        EXPRESSION();
+        EXPRESSION(lexlevel);
 
         if(TOKEN != rparentsym)
         {
