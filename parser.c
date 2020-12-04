@@ -62,8 +62,7 @@ void markbackwards(int n)
             n--;
         }
         s--;
-    }
-    
+    }    
 }
 
 void printtable()

@@ -13,9 +13,27 @@ instruction *code;
 
 // Global variable to keep track of current token
 int current;
-int tx; // symbol table current
+int tx = 0; // symbol table current
 int cx = 0; // code current
 char *name;
+
+int closestloopkup(char *name, int kind, int level)
+{
+    for(int i = tx; i >= 0; i--)
+    {
+        if(!strcmp(table[i].name, name) && table[i].kind == kind && table[i].level <= level && table[i].mark == 0)
+            return i;
+    }
+}
+
+int markedlookup(char *name, int kind,  int kind, int level)
+{
+    for(int i = 0; i < symcount; i++)
+    {
+        if(!strcmp(name, table[i].name) && table[i].kind == kind && table[i].mark == 1)
+            return i;
+    }
+}
 
 void CPROGRAM()
 {
@@ -31,7 +49,7 @@ void CPROGRAM()
         }
     }
     
-    CBLOCK(0, 0);
+    CBLOCK(0);
 
     // fix JMP codes
     int proc = 0;
@@ -68,7 +86,7 @@ void CPROGRAM()
     emit(SYS, 0, 0, 3);
 }
 
-void CBLOCK(int lexlevel, int cproc)
+void CBLOCK(int lexlevel)
 {
     int numsymbols = 0;
     int numvars = 0;
@@ -78,9 +96,13 @@ void CBLOCK(int lexlevel, int cproc)
         {
             current++;
             numsymbols++;
+            tx++;
+
             // unmark const in symbol table
-            tx = lookup(current, lexlevel);
             table[tx].mark = 0;
+
+            // temp = markedlookup(TNAME, CONST, lexlevel);
+            // table[temp].mark = 0;
             
             current += 3;
         } while(TOKEN == commasym);
@@ -94,9 +116,9 @@ void CBLOCK(int lexlevel, int cproc)
         {
             current++;
             numvars++;
-            numsymbols;
+            numsymbols++;
+            tx++;
             // unmark var in symbol table
-            tx = lookup(current, lexlevel);
             table[tx].mark = 0;
             current++;
         } while(TOKEN == commasym);
