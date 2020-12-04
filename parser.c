@@ -62,14 +62,14 @@ void markbackwards(int n)
             n--;
         }
         s--;
-    }    
+    }
 }
 
 void printtable()
 {
     for(int i = 0; i < symcount; i++)
     {
-        printf("Symbol Table:\nkind: %d name: %11s value: %6d level: %3d addr: %3d mark: %d\n", table[i].kind, 
+        printf("Symbol Table:\nkind: %d name: %11s value: %6d level: %3d addr: %3d mark: %d\n", table[i].kind,
         table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
 }
@@ -77,9 +77,9 @@ void printtable()
 void PROGRAM()
 {
     insert(PROC, "main", 0, 0, 0, 0);
-    
+
     printtable();
-    
+
     BLOCK(0);
 
     if(TOKEN != periodsym)
@@ -105,7 +105,7 @@ void BLOCK(int lexlevel)
 
 int CONST_DECLARATION(int lexlevel)
 {
-    int numconsts = 0; 
+    int numconsts = 0;
     if(TOKEN == constsym)
     {
         do
@@ -128,7 +128,7 @@ int CONST_DECLARATION(int lexlevel)
                     exit(EXIT_FAILURE);
                 }
             }
-            
+
             current++;
             if(TOKEN != eqsym)
             {
@@ -156,7 +156,7 @@ int CONST_DECLARATION(int lexlevel)
         }
         current++;
     }
-    
+
     return numconsts;
 }
 
@@ -326,7 +326,8 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        if(TOKEN == thensym)
+        STATEMENT(lexlevel);
+        if(TOKEN == elsesym)
         {
             current++;
             STATEMENT(lexlevel);
