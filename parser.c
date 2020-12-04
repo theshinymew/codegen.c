@@ -9,12 +9,11 @@
 
 lexeme *list;
 symbol *table;
+char *name;
 
 // Global variables to keep track of current token, symbol table capacity, and variable counter
 int current = 0;
 int symcount = 0;
-int varcount = 0;
-char *name;
 
 // Symbol table insert function
 void insert(int kind, char* name, int value, int level, int address, int mark)
@@ -26,86 +25,62 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
     table[symcount].addr = address;
     table[symcount].mark = mark;
 
-    printf("symcount: %d, \"%s\" inserted into table at table[%d]\n", symcount, table[symcount].name, symcount);
     symcount++;
 }
 
 // Symbol table lookup function
 // Returns identifier index in symbol table, or -1 if it doesn't exist
-int lookup(int current, int lexlevel)
+int lookup(char* name)
 {
-    for(int i = symcount - 1; i >= 0; i--)
+    for(int i = 0; i < symcount; i++)
     {
-        if((!strcmp(TNAME, table[i].name)) && table[i].level <= lexlevel && table[i].mark == 0)
+        if(!strcmp(name, table[i].name))
             return i;
     }
     return -1;
 }
 
-// earch through the symbol table working backwards to find
-// the latest thing (specified by searchNum) with the same name.
-// searchNum = 1: unmarked vars AND constants.
-// searchNum = 2: only search for unmarked vars.
-// searchNum = 3: procedures.
-int lookup_alt(int current, int lexlevel, int searchNum)
+int reverselookup(char *name, int kind)
 {
-    if(searchNum == 1)
+    for(int i = symcount - 1; i >= 0; i--)
     {
-        for(int i = symcount - 1; i >= 0; i--)
-        {
-            if(!strcmp(TNAME, table[i].name))
-            {
-                if(table[i].kind == CONST)
-                {
-                    return i;
-                }
-                else if(table[i].kind == VAR && table[i].mark == 0)
-                {
-                    return i;
-                }
-            }
-        }
-        return -1;
+        if(!strcmp(table[i].name, name) && table[i].kind == kind && table[i].mark == 0)
+            return i;
     }
-    if(searchNum == 2)
+    return -1;
+}
+
+void markbackwards(int n)
+{
+    int s = symcount - 1;
+
+    while(n > 0 && s >= 0)
     {
-        for(int i = symcount - 1; i >= 0; i--)
+        if(!table[s].mark)
         {
-            if(!strcmp(TNAME, table[i].name))
-            {
-                if(table[i].kind == VAR && table[i].mark == 0)
-                {
-                    //printf("Returning with:\n kind = %d\nmark = %d\n", table[i].kind, table[i].mark);
-                    return i;
-                }
-            }
+            table[s].mark = 1;
+            n--;
         }
-        return -1;
+        s--;
     }
-    else if(searchNum == 3)
+    
+}
+
+void printtable()
+{
+    for(int i = 0; i < symcount; i++)
     {
-        for(int i = symcount - 1; i >= 0; i--)
-        {
-            if(!strcmp(TNAME, table[i].name))
-            {
-                if(table[i].kind == PROC && table[i].mark == 0)
-                {
-                    return i;
-                }
-            }
-        }
-        return -1;
+        printf("Symbol Table:\nkind: %d name: %11s value: %6d level: %3d addr: %3d mark: %d\n", table[i].kind, 
+        table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
 }
 
-
-
-
 void PROGRAM()
 {
-    char main[] = "main";
-    insert(PROC, main, 0, 0, 0, 0);
-
+    insert(PROC, "main", 0, 0, 0, 0);
+    
+    printtable();
+    
     BLOCK(0);
 
     if(TOKEN != periodsym)
@@ -117,43 +92,21 @@ void PROGRAM()
 
 void BLOCK(int lexlevel)
 {
-    printf("Entering BLOCK(%d)\n", lexlevel);
-    int numSymbols = 0;
-    numSymbols += CONST_DECLARATION(lexlevel);
-    numSymbols += VAR_DECLARATION(lexlevel);
-    numSymbols += PROCEDURE_DECLARATION(lexlevel);
-
+    int numsybols = 0;
+    numsybols += CONST_DECLARATION(lexlevel);
+    numsybols += VAR_DECLARATION(lexlevel);
+    numsybols += PROC_DECLARATION(lexlevel); // +1 is inside procdec
+    printf("in BLOCK before STATEMENT\n"); printtable();
     STATEMENT(lexlevel);
-
+    printf("in BLOCK after STATEMENT\n"); printtable();
     // mark the last numsymbols number of unmarked symbols
-
-    int j = 0;
-    for(int i = 0; j < numSymbols; i++)
-    {
-        if(!table[(symcount - 1) - i].mark)
-        {
-            table[(symcount - 1) - i].mark = 1;
-            printf("table[%d] marked. name: \"%s\"\n", (symcount - 1) - i, table[(symcount - 1) - i].name);
-            j++;
-        }
-    }
-
-    /*
-    while(numSymbols > 0)
-    {
-        if(!table[numSymbols].mark)
-        {
-            table[numSymbols].mark = 1;
-            printf("table[%d] marked. name: \"%s\"\n", numSymbols, table[numSymbols].name);
-        }
-        numSymbols--;
-    }
-    */
+    markbackwards(numsybols);
+    printf("in BLOCK after mark backwards\n"); printtable();
 }
 
 int CONST_DECLARATION(int lexlevel)
 {
-    int numConsts = 0;
+    int numconsts = 0; 
     if(TOKEN == constsym)
     {
         do
@@ -166,18 +119,17 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             // save ident name
-            int temp = lookup(current, lexlevel);
+            name = TNAME;
+            int temp = lookup(name);
             if(temp != -1)
             {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
+                if(table[temp].mark == 0 && table[temp].level == lexlevel)
+                {
+                    printf("ERROR: identifier has already been declared\n");
+                    exit(EXIT_FAILURE);
+                }
             }
-            else if (table[temp].level == lexlevel)
-            {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
-            }
-
+            
             current++;
             if(TOKEN != eqsym)
             {
@@ -193,64 +145,67 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             // Add to symbol table.
-            insert(CONST, TNAME, list[current].value, 0, 0, 0);
-            numConsts++;
+            insert(CONST, name, list[current].value, 0, 0, 0);
+            numconsts++;
             current++;
-        }
-        while(TOKEN == commasym);
+        } while(TOKEN == commasym);
 
         if(TOKEN != semicolonsym)
         {
-            printf("ERROR: declaration must end with ';'\n");
+            printf("ERROR: semicolon expected\n");
             exit(EXIT_FAILURE);
         }
         current++;
     }
-    return numConsts;
+    
+    return numconsts;
 }
 
 int VAR_DECLARATION(int lexlevel)
 {
-    int numVars = 0;
+    int numvars = 0;
     if(TOKEN == varsym)
     {
         do
         {
             current++;
-            varcount++;
             if(TOKEN != identsym)
             {
                 printf("ERROR: const, var, procedure must be followed by identifier\n");
                 exit(EXIT_FAILURE);
             }
 
-            int temp = lookup(current, lexlevel);
-            if(temp != -1 && table[temp].level == lexlevel)
+            // save ident name
+            name = TNAME;
+            int temp = lookup(name);
+            if(temp != -1)
             {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
+                if(table[temp].mark == 0 && table[temp].level == lexlevel)
+                {
+                    printf("ERROR: identifier has already been declared\n");
+                    exit(EXIT_FAILURE);
+                }
             }
 
             // Add to symbol table.
-            insert(VAR, TNAME, 0, 0, varcount + 2, 0);
-            numVars++;
+            insert(VAR, name, 0, 0, numvars + 2, 0);
+            numvars++;
             current++;
-        }
-        while(TOKEN == commasym);
+        } while(TOKEN == commasym);
 
         if(TOKEN != semicolonsym)
         {
-            printf("ERROR: declaration must end with ';'\n");
+            printf("ERROR: semicolon expected\n");
             exit(EXIT_FAILURE);
         }
         current++;
     }
-    return numVars;
+    return numvars;
 }
 
-int PROCEDURE_DECLARATION(int lexlevel)
+int PROC_DECLARATION(int lexlevel)
 {
-    int numProcedures = 0;
+    int numprocs = 0;
     if(TOKEN == procsym)
     {
         do
@@ -262,55 +217,51 @@ int PROCEDURE_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
 
-            int temp = lookup(current, lexlevel);
-            if(temp != -1 && table[temp].level == lexlevel)
+            // save ident name
+            name = TNAME;
+            int temp = lookup(name);
+            if(temp != -1)
             {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
+                if(table[temp].mark == 0 && table[temp].level == lexlevel)
+                {
+                    printf("ERROR: identifier has already been declared\n");
+                    exit(EXIT_FAILURE);
+                }
             }
 
-            insert(PROC, TNAME, 0, lexlevel, 0, 0);
-            numProcedures++; // I had this AFTER block earlier-- reason?
+            // Add to the symbol table
+            insert(PROC, name, 0, lexlevel, 0, 0);
+            numprocs++;
             current++;
 
             if(TOKEN != semicolonsym)
             {
-                printf("ERROR: declaration must end with ';'\n");
+                printf("ERROR: semicolon expected\n");
                 exit(EXIT_FAILURE);
             }
-
             current++;
+
             BLOCK(lexlevel + 1);
-            printf("Returned from BLOCK(%d)\n", lexlevel + 1);
 
             if(TOKEN != semicolonsym)
             {
-                printf("ERROR: declaration must end with ';'\n");
+                printf("ERROR: semicolon expected\n");
                 exit(EXIT_FAILURE);
             }
             current++;
+
         } while(TOKEN == procsym);
     }
-    return numProcedures;
+    return numprocs;
 }
 
 void STATEMENT(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        name = TNAME;
-
-        if(lookup_alt(current, lexlevel, 2) == -1)
+        if(backwardslookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            printf("name: %s\n", TNAME);
-            exit(EXIT_FAILURE);
-        }
-
-        if(table[lookup_alt(current, lexlevel, 2)].kind != 2)
-        {
-            //printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
-            printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
         }
 
@@ -329,17 +280,20 @@ void STATEMENT(int lexlevel)
     if(TOKEN == callsym)
     {
         current++;
-        name = TNAME;
+        if(TOKEN != identsym)
+        {
+            printf("ERROR: call must be followed by identifier\n");
+            exit(EXIT_FAILURE);
+        }
 
-        if(lookup_alt(current, lexlevel, 3) == -1)
+        if(backwardslookup(TNAME, PROC) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
         current++;
-
-        return;
+        return
     }
 
     if(TOKEN == beginsym)
@@ -373,14 +327,14 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        STATEMENT(lexlevel);
+        STATEMENT();
         return;
     }
 
     if(TOKEN == whilesym)
     {
         current++;
-        CONDITION(lexlevel);
+        CONDITION();
 
         if(TOKEN != dosym)
         {
@@ -389,7 +343,7 @@ void STATEMENT(int lexlevel)
         }
 
         current++;
-        STATEMENT(lexlevel);
+        STATEMENT();
         return;
     }
 
@@ -402,17 +356,16 @@ void STATEMENT(int lexlevel)
             exit(EXIT_FAILURE);
         }
 
-        name = TNAME;
-        if(lookup_alt(current, lexlevel, 2) == -1)
+        name = list[current].name;
+        if(lookup(name) == -1)
         {
-            printf("ERROR: undeclared identifier (3)\n");
+            printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        if(table[lookup_alt(current, lexlevel, 2)].kind != 2)
+        if(table[lookup(name)].kind != 2)
         {
-            printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
-            printf("ERROR: assignment to constant is not allowed (395)\n");
+            printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
         }
 
@@ -423,9 +376,20 @@ void STATEMENT(int lexlevel)
     if(TOKEN == writesym)
     {
         current++;
+        if(TOKEN != identsym)
+        {
+            printf("ERROR: write statement must be followed by identifier\n");
+            exit(EXIT_FAILURE);
+        }
 
+        name = list[current].name;
+        if(lookup(name) == -1)
+        {
+            printf("ERROR: undeclared identifier\n");
+            exit(EXIT_FAILURE);
+        }
 
-        EXPRESSION(lexlevel);
+        current++;
         return;
     }
 }
@@ -435,11 +399,11 @@ void CONDITION(int lexlevel)
     if(TOKEN == oddsym)
     {
         current++;
-        EXPRESSION(lexlevel);
+        EXPRESSION();
     }
     else
     {
-        EXPRESSION(lexlevel);
+        EXPRESSION();
 
         if(TOKEN != eqsym && TOKEN != neqsym && TOKEN != lessym &&
            TOKEN != leqsym && TOKEN != gtrsym && TOKEN != geqsym)
@@ -449,7 +413,7 @@ void CONDITION(int lexlevel)
         }
 
         current++;
-        EXPRESSION(lexlevel);
+        EXPRESSION();
     }
 }
 
@@ -459,40 +423,35 @@ void EXPRESSION(int lexlevel)
     {
         current++;
     }
-    TERM(lexlevel);
+    TERM();
 
     while(TOKEN == plussym || TOKEN == minussym)
     {
         current++;
-        TERM(lexlevel);
+        TERM();
     }
 
 }
 
 void TERM(int lexlevel)
 {
-    FACTOR(lexlevel);
+    FACTOR();
 
     while(TOKEN == multsym || TOKEN == slashsym)
     {
         current++;
-        FACTOR(lexlevel);
+        FACTOR();
     }
 }
 
-// TODO
 void FACTOR(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        name = TNAME;
-
-        if(lookup_alt(current, lexlevel, 1) == -1)
+        name = list[current].name;
+        if(lookup(name) == -1)
         {
             printf("ERROR: undeclared identifier\n");
-            printf("kind: %d\nname: %s\nval: %d\nlevel: %d\naddress: %d\nmark: %d\n",
-                    table[1].kind, table[1].name, table[1].val,
-                    table[1].level, table[1].addr, table[1].mark);
             exit(EXIT_FAILURE);
         }
 
@@ -505,7 +464,7 @@ void FACTOR(int lexlevel)
     else if(TOKEN == lparentsym)
     {
         current++;
-        EXPRESSION(lexlevel);
+        EXPRESSION();
 
         if(TOKEN != rparentsym)
         {
@@ -529,6 +488,5 @@ symbol* parser(lexeme *lexeme_list)
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
 
     PROGRAM();
-    // exit(EXIT_FAILURE);
     return table;
 }
