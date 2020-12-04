@@ -248,7 +248,7 @@ void CSTATEMENT(int lexlevel)
         // emit READ
         emit(SYS, 0, 0, 2);
         // emit STO
-        emit(STO, 0, table[tx].level, table[tx].addr);
+        emit(STO, 0, lexlevel - table[tx].level, table[tx].addr);
     }
 
     if(TOKEN == writesym)
@@ -257,7 +257,6 @@ void CSTATEMENT(int lexlevel)
         CEXPRESSION(lexlevel);
         //emite WRITE
         (SYS, 0, 0, 1);
-        current++;
     }
 }
 

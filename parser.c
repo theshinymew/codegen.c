@@ -33,11 +33,9 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
 // Returns identifier index in symbol table, or -1 if it doesn't exist
 int lookup(int current, int lexlevel)
 {
-    name = TNAME;
-
-    for(int i = 0; i < symcount; i++)
+    for(int i = symcount - 1; i >= 0; i--)
     {
-        if((!strcmp(name, table[i].name)) && table[i].level <= lexlevel && table[i].mark == 0)
+        if((!strcmp(TNAME, table[i].name)) && table[i].level <= lexlevel && table[i].mark == 0)
             return i;
     }
     return -1;
@@ -45,9 +43,9 @@ int lookup(int current, int lexlevel)
 
 void PROGRAM()
 {
-    insert(3, "main", 0, 0, 0, 0);
-    current++;
-
+    char main[] = "main";
+    insert(PROC, main, 0, 0, 0, 0);
+    
     BLOCK(0);
 
     if(TOKEN != periodsym)
@@ -57,7 +55,6 @@ void PROGRAM()
     }
 }
 
-// TODO
 void BLOCK(int lexlevel)
 {
     int numSymbols = 0;
@@ -66,16 +63,14 @@ void BLOCK(int lexlevel)
     numSymbols += PROCEDURE_DECLARATION(lexlevel);
     STATEMENT(lexlevel);
 
-    // mark the last numSymbols number of unmarked symbols
-    // This might be VERY wrong.
-    int i, j = 0;
-    for(i = 0; j < numSymbols; i++)
+    // mark the last numsymbols number of unmarked symbols
+    while(numSymbols > 0)
     {
-        if(table[symcount - i].mark == 0)
+        if(!table[numSymbols].mark)
         {
-            table[symcount - i].mark = 1;
-            j++;
-        }
+            table[numSymbols].mark = 1;
+        }        
+        numSymbols--;
     }
 }
 
@@ -94,7 +89,6 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             // save ident name
-            name = TNAME;
             int temp = lookup(current, lexlevel);
             if(temp != -1)
             {
@@ -122,7 +116,7 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             // Add to symbol table.
-            insert(1, name, list[current].value, 0, 0, 0);
+            insert(CONST, TNAME, list[current].value, 0, 0, 0);
             numConsts++;
             current++;
         }
@@ -153,22 +147,15 @@ int VAR_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
 
-            // save ident name
-            name = TNAME;
             int temp = lookup(current, lexlevel);
-            if(temp != -1)
+            if(temp != -1 && table[temp].level == lexlevel)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
             }
-            else if (table[temp].level == lexlevel)
-            {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
-            }
-
+            
             // Add to symbol table.
-            insert(2, name, 0, 0, varcount + 2, 0);
+            insert(VAR, TNAME, 0, 0, varcount + 2, 0);
             numVars++;
             current++;
         }
@@ -198,7 +185,6 @@ int PROCEDURE_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
 
-            name = TNAME;
             int temp = lookup(current, lexlevel);
             if(temp != -1)
             {
@@ -211,7 +197,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
 
-            insert(3, name, 0, lexlevel, 0, 0);
+            insert(PROC, TNAME, 0, lexlevel, 0, 0);
             numProcedures++; // I had this AFTER block earlier-- reason?
             current++;
 
@@ -230,7 +216,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
             current++;
-        } while(TOKEN != procsym);
+        } while(TOKEN == procsym);
     }
     return numProcedures;
 }
