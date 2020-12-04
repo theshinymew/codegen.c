@@ -26,6 +26,7 @@ void insert(int kind, char* name, int value, int level, int address, int mark)
     table[symcount].addr = address;
     table[symcount].mark = mark;
 
+    printf("symcount: %d, table[symcount].name: \"%s\"\n", symcount, table[symcount].name);
     symcount++;
 }
 
@@ -41,11 +42,70 @@ int lookup(int current, int lexlevel)
     return -1;
 }
 
+// earch through the symbol table working backwards to find
+// the latest thing (specified by searchNum) with the same name.
+// searchNum = 1: unmarked vars AND constants.
+// searchNum = 2: only search for unmarked vars.
+// searchNum = 3: procedures.
+int lookup_alt(int current, int lexlevel, int searchNum)
+{
+    if(searchNum == 1)
+    {
+        for(int i = symcount - 1; i >= 0; i--)
+        {
+            if(!strcmp(TNAME, table[i].name))
+            {
+                if(table[i].kind == CONST)
+                {
+                    return i;
+                }
+                else if(table[i].kind == VAR && table[i].mark == 0)
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+    if(searchNum == 2)
+    {
+        for(int i = symcount - 1; i >= 0; i--)
+        {
+            if(!strcmp(TNAME, table[i].name))
+            {
+                if(table[i].kind == VAR && table[i].mark == 0)
+                {
+                    //printf("Returning with:\n kind = %d\nmark = %d\n", table[i].kind, table[i].mark);
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+    else if(searchNum == 3)
+    {
+        for(int i = symcount - 1; i >= 0; i--)
+        {
+            if(!strcmp(TNAME, table[i].name))
+            {
+                if(table[i].kind == PROC && table[i].mark == 0)
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+}
+
+
+
+
 void PROGRAM()
 {
     char main[] = "main";
     insert(PROC, main, 0, 0, 0, 0);
-    
+
     BLOCK(0);
 
     if(TOKEN != periodsym)
@@ -69,7 +129,7 @@ void BLOCK(int lexlevel)
         if(!table[numSymbols].mark)
         {
             table[numSymbols].mark = 1;
-        }        
+        }
         numSymbols--;
     }
 }
@@ -153,7 +213,7 @@ int VAR_DECLARATION(int lexlevel)
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
             }
-            
+
             // Add to symbol table.
             insert(VAR, TNAME, 0, 0, varcount + 2, 0);
             numVars++;
@@ -186,12 +246,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
             }
 
             int temp = lookup(current, lexlevel);
-            if(temp != -1)
-            {
-                printf("ERROR: identifier has already been declared\n");
-                exit(EXIT_FAILURE);
-            }
-            else if (table[temp].level == lexlevel)
+            if(temp != -1 && table[temp].level == lexlevel)
             {
                 printf("ERROR: identifier has already been declared\n");
                 exit(EXIT_FAILURE);
@@ -227,14 +282,15 @@ void STATEMENT(int lexlevel)
     {
         name = TNAME;
 
-        if(lookup(current, lexlevel) == -1)
+        if(lookup_alt(current, lexlevel, 2) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
 
-        if(table[lookup(current, lexlevel)].kind != 2)
+        if(table[lookup_alt(current, lexlevel, 2)].kind != 2)
         {
+            printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
             printf("ERROR: assignment to constant is not allowed\n");
             exit(EXIT_FAILURE);
         }
@@ -256,7 +312,7 @@ void STATEMENT(int lexlevel)
         current++;
         name = TNAME;
 
-        if(lookup(current, lexlevel) == -1)
+        if(lookup_alt(current, lexlevel, 3) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -328,15 +384,16 @@ void STATEMENT(int lexlevel)
         }
 
         name = TNAME;
-        if(lookup(current, lexlevel) == -1)
+        if(lookup_alt(current, lexlevel, 2) == -1)
         {
-            printf("ERROR: undeclared identifier\n");
+            printf("ERROR: undeclared identifier (3)\n");
             exit(EXIT_FAILURE);
         }
 
-        if(table[lookup(current, lexlevel)].kind != 2)
+        if(table[lookup_alt(current, lexlevel, 2)].kind != 2)
         {
-            printf("ERROR: assignment to constant is not allowed\n");
+            printf("%d\n", table[lookup_alt(current, lexlevel, 2)].kind);
+            printf("ERROR: assignment to constant is not allowed (395)\n");
             exit(EXIT_FAILURE);
         }
 
@@ -347,20 +404,9 @@ void STATEMENT(int lexlevel)
     if(TOKEN == writesym)
     {
         current++;
-        if(TOKEN != identsym)
-        {
-            printf("ERROR: write statement must be followed by identifier\n");
-            exit(EXIT_FAILURE);
-        }
 
-        name = TNAME;
-        if(lookup(current, lexlevel) == -1)
-        {
-            printf("ERROR: undeclared identifier\n");
-            exit(EXIT_FAILURE);
-        }
 
-        current++;
+        EXPRESSION(lexlevel);
         return;
     }
 }
@@ -421,10 +467,19 @@ void FACTOR(int lexlevel)
     if(TOKEN == identsym)
     {
         name = TNAME;
-        // search the symbol table working backwards
-        // find the latest unmarked var with the desired name
-        if(lookup(current, lexlevel) == -1)
+
+        printf("%s\n", name);
+        if(lookup_alt(current, lexlevel, 1) == -1)
         {
+            printf("OOPS: %d\n", lookup_alt(current, lexlevel, 1));
+            printf("%s is marked.\n", TNAME);
+            printf("It should see the identifier in table[1].\ntable[1]'s info is:\n");
+
+            printf("\nkind: %d\nname: %s\nval: %d\nlevel: %d\naddress: %d\nmark: %d\n",
+                    table[1].kind, table[1].name, table[1].val,
+                    table[1].level, table[1].addr, table[1].mark);
+
+            printf("the f should NOT be marked. This means that the way we're currently marking is wrong.\n");
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
