@@ -65,7 +65,18 @@ void BLOCK(int lexlevel)
     numSymbols += VAR_DECLARATION(lexlevel);
     numSymbols += PROCEDURE_DECLARATION(lexlevel + 1);
     STATEMENT(lexlevel);
+
     // mark the last numSymbols number of unmarked symbols
+    // This might be VERY wrong.
+    int i, j = 0;
+    for(i = 0; j < numSymbols; i++)
+    {
+        if(table[symcount - i].mark == 0)
+        {
+            table[symcount - i].mark = 1;
+            j++;
+        }
+    }
 }
 
 int CONST_DECLARATION(int lexlevel)
@@ -106,6 +117,7 @@ int CONST_DECLARATION(int lexlevel)
 
             // Add to symbol table.
             insert(1, name, list[current].value, 0, 0, 0);
+            numConsts++;
             current++;
         }
         while(TOKEN == commasym);
@@ -145,6 +157,7 @@ int VAR_DECLARATION(int lexlevel)
 
             // Add to symbol table.
             insert(2, name, 0, 0, varcount + 2, 0);
+            numVars++;
             current++;
         }
         while(TOKEN == commasym);
@@ -181,6 +194,7 @@ int PROCEDURE_DECLARATION(int lexlevel)
             }
 
             insert(3, name, 0, lexlevel, 0, 0);
+            numProcedures++; // I had this AFTER block earlier-- reason?
             current++;
 
             if(TOKEN != semicolonsym)
@@ -198,7 +212,6 @@ int PROCEDURE_DECLARATION(int lexlevel)
                 exit(EXIT_FAILURE);
             }
             current++;
-            numProcedures++;
         } while(TOKEN != procsym);
     }
     return numProcedures;
