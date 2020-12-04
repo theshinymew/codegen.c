@@ -1,0 +1,37 @@
+ALL POSSIBLE ERRORS:
+
+1. Identifier too long.
+
+2. Invalid identifier.
+
+3. Number too long.
+
+4. Period expected.
+
+5. const, var, and procedure must be followed by an identifier.
+
+6. Identifier has already been declared.
+
+7. Constant declaration must be followed by '='.
+
+8. '=' must be followed by a number.
+
+9. ';' expected.
+
+10. ':=' expected.
+
+11. Call must be followed by identifier.
+
+12. begin must be closed with end.
+
+13. if condition must be followed by then.
+
+14. while condition must be followed by do.
+
+15. read statement must be followed by identifier.
+
+16. relational operator expected.
+
+17. right parenthesis missing.
+
+18. the preceding factor cannot begin with this symbol
