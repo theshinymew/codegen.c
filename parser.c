@@ -78,12 +78,11 @@ void PROGRAM()
 {
     insert(PROC, "main", 0, 0, 0, 0);
 
-    printtable();
-
     BLOCK(0);
 
     if(TOKEN != periodsym)
     {
+        printtable();
         printf("ERROR: period expected\n");
         exit(EXIT_FAILURE);
     }
@@ -95,12 +94,9 @@ void BLOCK(int lexlevel)
     numsybols += CONST_DECLARATION(lexlevel);
     numsybols += VAR_DECLARATION(lexlevel);
     numsybols += PROC_DECLARATION(lexlevel); // +1 is inside procdec
-    printf("in BLOCK before STATEMENT\n"); printtable();
     STATEMENT(lexlevel);
-    printf("in BLOCK after STATEMENT\n"); printtable();
     // mark the last numsymbols number of unmarked symbols
     markbackwards(numsybols);
-    printf("in BLOCK after mark backwards\n"); printtable();
 }
 
 int CONST_DECLARATION(int lexlevel)
@@ -260,6 +256,7 @@ void STATEMENT(int lexlevel)
     {
         if(reverselookup(TNAME, VAR) == -1)
         {
+
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
         }
@@ -431,7 +428,7 @@ void FACTOR(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        if(reverselookup(TNAME, VAR) == -1)
+        if(reverselookup(TNAME, VAR) == -1 && reverselookup(TNAME, CONST) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -470,5 +467,6 @@ symbol* parser(lexeme *lexeme_list)
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
 
     PROGRAM();
+    //printtable();
     return table;
 }
