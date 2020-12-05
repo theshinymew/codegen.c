@@ -7,6 +7,10 @@
 #include "lex.h"
 #include "parser.h"
 
+// Macro for tokens
+#define TOKEN list[current].token
+#define TNAME list[current].name
+
 typedef struct instruction
 {
 	int op;

@@ -11,45 +11,56 @@ lexeme *list;
 symbol *table;
 instruction *code;
 
-// Global variable to keep track of current token
-int current;
-int tx = 0; // symbol table current
-int cx = 0; // code current
+int current; // token current
+int cx; // code current
 char *name;
 
-int closestloopkup(char *name, int kind, int level)
+// find closest unmarked going backwards
+int closestlookup(char *name, int kind, int level)
 {
-    for(int i = tx; i >= 0; i--)
+    for(int i = symcount; i >= 0; i--)
     {
         if(!strcmp(table[i].name, name) && table[i].kind == kind && table[i].level <= level && table[i].mark == 0)
             return i;
     }
 }
 
-int markedlookup(char *name, int kind,  int kind, int level)
+// find marked ident to unmark
+int markedlookup(char *name, int kind, int level)
 {
     for(int i = 0; i < symcount; i++)
     {
-        if(!strcmp(name, table[i].name) && table[i].kind == kind && table[i].mark == 1)
+        if(!strcmp(name, table[i].name) && table[i].level == level && table[i].mark == 1)
+            return i;
+    }
+}
+
+// find closest unmarked going backwards and not considering kind
+int closestlookupnokind(char *name, int level)
+{
+    for(int i = symcount; i >= 0; i--)
+    {
+        if(!strcmp(table[i].name, name) && table[i].level <= level && table[i].mark == 0 
+            && (table[i].kind == CONST || table[i].kind == VAR))
             return i;
     }
 }
 
 void CPROGRAM()
 {
-    // emit JMP for every procedure
-    int procCount = 1;
+    int numproc = 1;
     for(int i = 0; i < symcount; i++)
     {
         if(table[i].kind == PROC)
         {
-            table[i].val = procCount;
-            procCount++;
+            table[i].val = numproc;
+            numproc++;
+            // emit JMP for each procedure
             emit(JMP, 0, 0, 0);
         }
     }
-    
-    CBLOCK(0);
+
+    CBLOCK(0, 0);
 
     // fix JMP codes
     int proc = 0;
@@ -61,7 +72,7 @@ void CPROGRAM()
             proc++;
         }
 
-        code[i].m = table[proc].val;
+        code[i].m = table[proc].addr;
         proc++;        
     }
 
@@ -86,30 +97,23 @@ void CPROGRAM()
     emit(SYS, 0, 0, 3);
 }
 
-void CBLOCK(int lexlevel)
+void CBLOCK(int lexlevel, int cproc)
 {
-    int numsymbols = 0;
     int numvars = 0;
+    int numsymbols = 0;
     if(TOKEN == constsym)
     {
         do
         {
             current++;
             numsymbols++;
-            tx++;
-
             // unmark const in symbol table
-            table[tx].mark = 0;
-
-            // temp = markedlookup(TNAME, CONST, lexlevel);
-            // table[temp].mark = 0;
-            
-            current += 3;
+            int temp = markedlookup(TNAME, CONST, lexlevel);
+            table[temp].mark = 0;
         } while(TOKEN == commasym);
 
         current++;
     }
-    
     if(TOKEN == varsym)
     {
         do
@@ -117,15 +121,13 @@ void CBLOCK(int lexlevel)
             current++;
             numvars++;
             numsymbols++;
-            tx++;
             // unmark var in symbol table
-            table[tx].mark = 0;
-            current++;
+            int temp = markedlookup(TNAME, VAR, lexlevel);
+            table[temp].mark = 0;
         } while(TOKEN == commasym);
 
         current++;
     }
-    
     if(TOKEN == procsym)
     {
         do
@@ -133,109 +135,85 @@ void CBLOCK(int lexlevel)
             current++;
             numsymbols++;
             // unmark proc in symbol table
-            tx = lookup(current, lexlevel);
-            table[tx].mark = 0;
-            
-            CBLOCK(lexlevel + 1, tx);
-
-            // emit RTN
+            int temp = markedlookup(TNAME, PROC, lexlevel);
+            table[temp].mark = 0;
+            current += 2;
+            CBLOCK(lexlevel + 1, temp);
+            //emit RTN
             emit(RTN, 0, 0, 0);
-
             current++;
-        } while (TOKEN == procsym);
+        } while (TOKEN == procsym);        
     }
 
-    // update symbol table entry for this procedure
+    // update symbol table for this procedure
     table[cproc].addr = cx;
-    emit(INC, 0, 0, 3 + numvars);
-    CSTATEMENT(lexlevel);
-
     // emit INC
     emit(INC, 0, 0, 3 + numvars);
     CSTATEMENT(lexlevel);
-
-    // mark the last numsymbols number of unmarked symbols
-    while(numsymbols > 0)
-    {
-        if(!table[cproc].mark)
-        {
-            table[cproc].mark = 1;
-            numsymbols--;
-        }        
-        cproc++;
-    }
+    // mark the last numsymbols number of marked symbols
+    // TODO
 }
 
 void CSTATEMENT(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        // save symbol table index of current identifier
-        tx = lookup(current, lexlevel);
+        int temp = closestlookup(TNAME, VAR, lexlevel);
         current += 2;
         CEXPRESSION(0, lexlevel);
-
         //emit STO
-        emit(STO, 0, lexlevel - table[tx].level, table[tx].addr);
+        emit(STO, lexlevel - table[temp].level, table[temp].addr);
     }
 
     if(TOKEN == callsym)
     {
         current++;
-        // save symbol table index of current procedure
-        tx = lookup(current, lexlevel);
-
+        int temp = closestlookup(TNAME, PROC, lexlevel);
         // emit CAL
-        emit(CAL, 0, table[tx].level, table[tx].addr);
+        emit(CAL, 0, lexlevel - table[temp].level, table[temp].addr);
+        current++;
     }
 
     if(TOKEN == beginsym)
     {
         current++;
         CSTATEMENT(lexlevel);
-
         while(TOKEN == semicolonsym)
         {
             current++;
             CSTATEMENT(lexlevel);
         }
-
         current++;
     }
 
     if(TOKEN == ifsym)
     {
         current++;
-        
         CCONDITION(lexlevel);
-
         // store current code current to fix JPC later
         int jpccx = cx;
         // emit JPC
         emit(JPC, 0, 0, 0);
-
         current++;
         CSTATEMENT(lexlevel);
 
         if(TOKEN == elsesym)
         {
             current++;
-            // store current code index to fix this JMP too later
+            // store the current index for JMP
             int jmpcx = cx;
             // emit JMP
             emit(JMP, 0, 0, 0);
-            // fix JPC by setting M to current code index
+            // fix JPC from earlier
             code[jpccx].m = cx;
-
             CSTATEMENT(lexlevel);
-
-            // fix JMP by setting M to current code index
+            // fix JMP from earlier
             code[jmpcx].m = cx;
         }
         else
         {
-            // fix JPC by setting M to current code index
-            code[jpccx].m = cx;   
+            // fix JPC from earlier
+            code[jpccx].m = cx;
         }
     }
 
@@ -244,41 +222,36 @@ void CSTATEMENT(int lexlevel)
         current++;
         // store current code index current for condition
         int condcx = cx;
-
         CCONDITION(lexlevel);
-
         current++;
-        // store current code index for JMP
+        // store current code index for jmp
         int jmpcx = cx;
         // emit JPC
         emit(JPC, 0, 0, 0);
-
         CSTATEMENT(lexlevel);
-
         // emit JMP
         emit(JMP, 0, 0, condcx);
-        // fix JPC by setting M to current current
+        // fix JPC from earlier
         code[jmpcx].m = cx;
     }
 
     if(TOKEN == readsym)
     {
         current++;
-        // save symbol table current of identifier
-        tx = lookup(current, lexlevel);
+        int temp = closestlookup(TNAME, VAR, lexlevel);
         current++;
         // emit READ
         emit(SYS, 0, 0, 2);
         // emit STO
-        emit(STO, 0, lexlevel - table[tx].level, table[tx].addr);
+        emit(STO, 0, lexlevel - table[temp].level, table[temp].addr);
     }
 
     if(TOKEN == writesym)
     {
         current++;
-        CEXPRESSION(lexlevel);
-        //emite WRITE
-        (SYS, 0, 0, 1);
+        CEXPRESSION(0, lexlevel);
+        // emit WRITE
+        emit(SYS, 0, 0, 1);
     }
 }
 
@@ -346,7 +319,6 @@ void CEXPRESSION(int r, int lexlevel)
         current++;
         CTERM(r, lexlevel);
         emit(NEG, r, 0, 0);
-
         while(TOKEN == plussym || TOKEN == minussym)
         {
             if(TOKEN == plussym)
@@ -355,7 +327,6 @@ void CEXPRESSION(int r, int lexlevel)
                 CTERM(r + 1, lexlevel);
                 emit(ADD, r, r, r + 1);
             }
-
             if(TOKEN == minussym)
             {
                 current++;
@@ -365,9 +336,7 @@ void CEXPRESSION(int r, int lexlevel)
         }
         return;
     }
-
     CTERM(r, lexlevel);
-
     while(TOKEN == plussym || TOKEN == minussym)
     {
         if(TOKEN == plussym)
@@ -376,7 +345,6 @@ void CEXPRESSION(int r, int lexlevel)
             CTERM(r + 1, lexlevel);
             emit(ADD, r, r, r + 1);
         }
-
         if(TOKEN == minussym)
         {
             current++;
@@ -388,8 +356,7 @@ void CEXPRESSION(int r, int lexlevel)
 
 void CTERM(int r, int lexlevel)
 {
-    CFACTOR(r,lexlevel);
-
+    CFACTOR(r, lexlevel);
     while(TOKEN == multsym || TOKEN == slashsym)
     {
         if(TOKEN == multsym)
@@ -398,7 +365,6 @@ void CTERM(int r, int lexlevel)
 			CFACTOR(r + 1, lexlevel);
 			emit(MUL, r, r, r + 1);
         }
-
         if(TOKEN == slashsym)
         {
             current++;
@@ -406,23 +372,20 @@ void CTERM(int r, int lexlevel)
 			emit(DIV, r, r, r + 1);
         }
     }
-    return;
 }
 
 void CFACTOR(int r, int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        // save symbol table current of identifier
-        tx = lookup(current, lexlevel);
-
-        if(table[tx].kind == CONST)
+        int temp = closestlookupnokind(TNAME, lexlevel);        
+        if(table[temp].kind == CONST)
         {
-            emit(LIT, r, 0, table[tx].val);
+            emit(LIT, r, 0, table[temp].val);
         }
-        if(table[tx].kind == VAR)
+        if(table[temp].kind == VAR)
         {
-            emit(LOD, r, 0, table[tx].addr);
+            emit(LOD, r, 0, table[temp].addr);
         }
         current++;
     }
@@ -464,7 +427,7 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list, int flag)
     code = malloc(sizeof(instruction) * 500);
 
     current = 0;
-    
+    cx = 0;
     CPROGRAM();
 
     if(flag)
