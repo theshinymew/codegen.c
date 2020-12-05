@@ -110,6 +110,7 @@ void CBLOCK(int lexlevel, int cproc)
             // unmark const in symbol table
             int temp = markedlookup(TNAME, CONST, lexlevel);
             table[temp].mark = 0;
+            current += 3;
         } while(TOKEN == commasym);
 
         current++;
@@ -124,6 +125,7 @@ void CBLOCK(int lexlevel, int cproc)
             // unmark var in symbol table
             int temp = markedlookup(TNAME, VAR, lexlevel);
             table[temp].mark = 0;
+            current++;
         } while(TOKEN == commasym);
 
         current++;
@@ -162,7 +164,7 @@ void CSTATEMENT(int lexlevel)
         current += 2;
         CEXPRESSION(0, lexlevel);
         //emit STO
-        emit(STO, lexlevel - table[temp].level, table[temp].addr);
+        emit(STO, 0, lexlevel - table[temp].level, table[temp].addr);
     }
 
     if(TOKEN == callsym)
@@ -385,7 +387,7 @@ void CFACTOR(int r, int lexlevel)
         }
         if(table[temp].kind == VAR)
         {
-            emit(LOD, r, 0, table[temp].addr);
+            emit(LOD, r, lexlevel - table[temp].level, table[temp].addr);
         }
         current++;
     }
@@ -432,14 +434,14 @@ instruction* codegen(symbol *symbol_table, lexeme *lexeme_list, int flag)
 
     if(flag)
     {
-        printf("Line OP  R   L   M\n");
+        printf("Line OP     R    L    M\n");
 	    for(int i = 0; i < cx; i++)
 	    {
             // Print line and opcode.
             printf("%-4d %s ", i, opcodes[code[i].op]);
 
             // Print line of instructions.
-            printf("%-3d %-3d %-3d\n", code[i].r, code[i].l, code[i].m);
+            printf("%4d %4d %4d\n", code[i].r, code[i].l, code[i].m);
 	    }
 	    printf("\n");
     }

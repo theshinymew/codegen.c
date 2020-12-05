@@ -67,9 +67,10 @@ void markbackwards(int n)
 
 void printtable()
 {
+    printf("\nSymbol Table:\n\n");
     for(int i = 0; i < symcount; i++)
     {
-        printf("Symbol Table:\nkind: %d name: %11s value: %6d level: %3d addr: %3d mark: %d\n", table[i].kind,
+        printf("kind: %d | name: %11s | value: %6d | level: %3d | addr: %3d | mark: %d\n", table[i].kind,
         table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
 }
@@ -140,7 +141,7 @@ int CONST_DECLARATION(int lexlevel)
             }
 
             // Add to symbol table.
-            insert(CONST, name, list[current].value, 0, 0, 0);
+            insert(CONST, name, list[current].value, lexlevel, 0, 0);
             numconsts++;
             current++;
         } while(TOKEN == commasym);
@@ -163,6 +164,7 @@ int VAR_DECLARATION(int lexlevel)
     {
         do
         {
+            numvars++;
             current++;
             if(TOKEN != identsym)
             {
@@ -183,8 +185,7 @@ int VAR_DECLARATION(int lexlevel)
             }
 
             // Add to symbol table.
-            insert(VAR, name, 0, 0, numvars + 2, 0);
-            numvars++;
+            insert(VAR, name, 0, lexlevel, numvars + 2, 0);
             current++;
         } while(TOKEN == commasym);
 
