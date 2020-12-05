@@ -30,6 +30,6 @@ typedef struct symbol
 symbol* parser(lexeme *lexeme_list);
 
 void insert(int kind, char* name, int value, int level, int address, int mark);
-int lookup(int current, int lexlevel);
+int lookup(char *name);
 
 #endif

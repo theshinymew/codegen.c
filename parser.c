@@ -12,8 +12,8 @@ symbol *table;
 char *name;
 
 // Global variables to keep track of current token, symbol table capacity, and variable counter
-int current = 0;
-int symcount = 0;
+current = 0;
+symcount = 0;
 
 // Symbol table insert function
 void insert(int kind, char* name, int value, int level, int address, int mark)
@@ -258,7 +258,7 @@ void STATEMENT(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        if(backwardslookup(TNAME, VAR) == -1)
+        if(reverselookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -285,7 +285,7 @@ void STATEMENT(int lexlevel)
             exit(EXIT_FAILURE);
         }
 
-        if(backwardslookup(TNAME, PROC) == -1)
+        if(reverselookup(TNAME, PROC) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -360,7 +360,7 @@ void STATEMENT(int lexlevel)
             exit(EXIT_FAILURE);
         }
 
-        if(backwardslookup(TNAME, VAR) == -1)
+        if(reverselookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
@@ -431,7 +431,7 @@ void FACTOR(int lexlevel)
 {
     if(TOKEN == identsym)
     {
-        if(backwardslookup(TNAME, VAR) == -1)
+        if(reverselookup(TNAME, VAR) == -1)
         {
             printf("ERROR: undeclared identifier\n");
             exit(EXIT_FAILURE);
