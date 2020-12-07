@@ -83,7 +83,7 @@ void PROGRAM()
 
     if(TOKEN != periodsym)
     {
-        printtable();
+        //printtable();
         printf("ERROR: period expected\n");
         exit(EXIT_FAILURE);
     }

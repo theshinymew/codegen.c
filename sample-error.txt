@@ -1,37 +1,383 @@
-ALL POSSIBLE ERRORS:
+var f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
 
-1. Identifier too long.
+begin
+n:=3;
+call fact;
+write f
+end.
 
-2. Invalid identifier.
 
-3. Number too long.
+/* No error. */
 
-4. Period expected.
+No errors, program is syntactically correct
 
-5. const, var, and procedure must be followed by an identifier.
+Register 0: 6
 
-6. Identifier has already been declared.
+var toolongnamewowitssomanycharacters, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
 
-7. Constant declaration must be followed by '='.
+begin
+n:=3;
+call fact;
+write f
+end.
 
-8. '=' must be followed by a number.
 
-9. ';' expected.
+/* Identifier too long. */
 
-10. ':=' expected.
+ERROR: identifier is too long
 
-11. Call must be followed by identifier.
+var 1f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
 
-12. begin must be closed with end.
+begin
+n:=3;
+call fact;
+write f
+end.
 
-13. if condition must be followed by then.
 
-14. while condition must be followed by do.
+/* Invalid identifier. */
 
-15. read statement must be followed by identifier.
+ERROR: invalid identifier
 
-16. relational operator expected.
+var f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
 
-17. right parenthesis missing.
+begin
+n:=3213423;
+call fact;
+write f
+end.
 
-18. the preceding factor cannot begin with this symbol
+
+/* Number too long. */
+
+ERROR: number is too long
+
+var f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
+
+begin
+n:=3;
+call fact;
+write f
+end
+
+
+/* Period expected. */
+
+ERROR: period expected
+
+const f = 7;
+var f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
+
+begin
+n:=3;
+call fact;
+write f
+end.
+
+
+/* Identifier has already been declared. */
+
+ERROR: identifier has already been declared
+
+const x 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+/* Const declaration must be followed by '=' */
+
+ERROR: constant declaration must be followed by '='
+
+var;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
+
+begin
+n:=3;
+call fact;
+write f
+end.
+
+
+/* Const, var, and procedure must be followed by an identifier. */
+
+ERROR: const, var, procedure must be followed by identifier
+
+const x = , y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+
+/* '=' must be followed by a number. */
+
+ERROR: '=' must be followed by a number
+
+const x = 7, y = 8;
+var a, b, c
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+
+/* ';' expected. */
+
+ERROR: semicolon expected
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b  -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+
+/* ':=' expected. */
+
+ERROR: ':=' expected
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+.
+
+
+/* begin must be closed with end. */
+
+ERROR: begin must be closed with end
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+
+/* if must be followed by then. */
+
+ERROR: if condition must be followed by then
+
+var f, n;
+procedure fact;
+var ans1;
+begin
+ ans1:=n;
+ n:= n-1;
+ if n = 0 then f := 1;
+ if n > 0 then call fact;
+ f:=f*ans1;
+end;
+
+begin
+n:=3;
+call;
+write f
+end.
+
+
+/* call must be followed by identifier. */
+
+ERROR: call must be followed by identifier
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := - b;
+	while c > x do
+		c := c - y;
+	read ;
+	write c;
+end.
+
+
+/* read must be followed by identifier. */
+
+ERROR: read statement must be followed by identifier
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x
+		c := c - y;
+	read b;
+	write c;
+end.
+
+/* while must be followed by do. */
+
+ERROR: while condition must be followed by do
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x;
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+/* right parentheses missing. */
+
+ERROR: right parenthesis missing
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + x + y;
+	if odd c then
+		b := -b;
+	while c + x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+/* relational operator expected. */
+
+ERROR: relational operator expected
+
+const x = 7, y = 8;
+var a, b, c;
+begin
+	a := x * y * 12;
+	b := -(a - x);
+	c := + a + b + var + y;
+	if odd c then
+		b := -b;
+	while c > x do
+		c := c - y;
+	read b;
+	write c;
+end.
+
+
+/* the preceding factor cannot begin with this symbol */
+
+ERROR: the preceding factor cannot begin with this symbol
