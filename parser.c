@@ -468,6 +468,5 @@ symbol* parser(lexeme *lexeme_list)
     table = malloc(sizeof(symbol) * MAX_TABLE_SIZE);
 
     PROGRAM();
-    //printtable();
     return table;
 }
