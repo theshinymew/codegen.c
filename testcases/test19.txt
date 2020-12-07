@@ -3,13 +3,14 @@ var a, b, c;
 begin
 	a := x * y * 12;
 	b := -(a - x);
-	c := + a + b + x + y;
+	c := + a + b + var + y;
 	if odd c then
 		b := -b;
-	while c + x do
+	while c > x do
 		c := c - y;
 	read b;
 	write c;
 end.
 
-/* relational operator expected. */
+
+/* the preceding factor cannot begin with this symbol */

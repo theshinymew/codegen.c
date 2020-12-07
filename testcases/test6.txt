@@ -1,6 +1,7 @@
+const f = 7;
 var f, n;
 procedure fact;
-var ans1, f;
+var ans1;
 begin
  ans1:=n;
  n:= n-1;
