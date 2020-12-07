@@ -30,3 +30,9 @@ begin
   write x;
   call a;
 end.
+
+No errors, program is syntactically correct
+
+Enter an integer: 
+5
+Register 0: 5
