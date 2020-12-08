@@ -1,5 +1,0 @@
-/* assigned to constant */
-const x, y;
-begin
-	x := y + 56;
-end.

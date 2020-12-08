@@ -1,6 +1,0 @@
-/* = instead of := */
-var x, y;
-begin
-	y = 3;
-	x = y + 56;
-end.

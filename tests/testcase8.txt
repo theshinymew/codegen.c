@@ -1,6 +1,0 @@
-/* no number following := */
-var x, y;
-begin
-	y :=;
-	x := y + 56;
-end.

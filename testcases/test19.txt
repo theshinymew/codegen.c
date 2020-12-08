@@ -3,7 +3,7 @@ var a, b, c;
 begin
 	a := x * y * 12;
 	b := -(a - x);
-	c := + a + b + var + y;
+	c := + a + b ** x + y;
 	if odd c then
 		b := -b;
 	while c > x do

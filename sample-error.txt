@@ -1,27 +1,3 @@
-var f, n;
-procedure fact;
-var ans1;
-begin
- ans1:=n;
- n:= n-1;
- if n = 0 then f := 1;
- if n > 0 then call fact;
- f:=f*ans1;
-end;
-
-begin
-n:=3;
-call fact;
-write f
-end.
-
-
-/* No error. */
-
-No errors, program is syntactically correct
-
-Register 0: 6
-
 var toolongnamewowitssomanycharacters, n;
 procedure fact;
 var ans1;
@@ -366,15 +342,15 @@ ERROR: relational operator expected
 const x = 7, y = 8;
 var a, b, c;
 begin
-	a := x * y * 12;
-	b := -(a - x);
-	c := + a + b + var + y;
-	if odd c then
-		b := -b;
-	while c > x do
-		c := c - y;
-	read b;
-	write c;
+        a := x * y * 12;
+        b := -(a - x);
+        c := + a + b ** x + y;
+        if odd c then
+                b := -b;
+        while c > x do
+                c := c - y;
+        read b;
+        write c;
 end.
 
 

@@ -1,5 +1,0 @@
-/* undeclared identifier. */
-var x, z;
-begin
-	x := y + 56;
-end.

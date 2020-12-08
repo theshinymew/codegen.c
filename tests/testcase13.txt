@@ -1,5 +1,0 @@
-/* no operator */
-var x, y;
-begin
-	x := y  56;
-end.
